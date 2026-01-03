@@ -771,26 +771,50 @@
 
           <!-- Service Provider Config -->
           <div class="mb-6">
-            <h4 class="text-md font-semibold text-gray-800 mb-2">Service Provider Configuration</h4>
-            <div class="bg-gray-50 rounded-lg p-4">
-              <pre class="text-xs overflow-x-auto" x-text="serviceProviderConfig !== null ? JSON.stringify(serviceProviderConfig, null, 2) : 'Loading...'"></pre>
-            </div>
+            <details>
+              <summary class="text-md font-semibold text-gray-800 cursor-pointer hover:text-gray-900 mb-2">
+                Service Provider Configuration
+              </summary>
+              <div class="bg-gray-50 rounded-lg p-4 mt-2">
+                <pre class="text-xs overflow-x-auto" x-text="serviceProviderConfig !== null ? JSON.stringify(serviceProviderConfig, null, 2) : 'Loading...'"></pre>
+              </div>
+            </details>
+            <p class="text-sm text-gray-600 mt-1">
+              Describes the SCIM service provider's capabilities, including supported features (authentication schemes, filtering, sorting, etc.) and operational limits (max results, max operations, etc.). This enables clients to understand what functionality is available.
+              <a href="https://datatracker.ietf.org/doc/html/rfc7643#section-5" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 underline ml-1">RFC 7643 §5</a>
+            </p>
           </div>
 
           <!-- Resource Types -->
           <div class="mb-6">
-            <h4 class="text-md font-semibold text-gray-800 mb-2">Resource Types (<span x-text="resourceTypes.length"></span>)</h4>
-            <div class="bg-gray-50 rounded-lg p-4">
-              <pre class="text-xs overflow-x-auto" x-text="resourceTypes !== null ? JSON.stringify(resourceTypes, null, 2) : 'Loading...'"></pre>
-            </div>
+            <details>
+              <summary class="text-md font-semibold text-gray-800 cursor-pointer hover:text-gray-900 mb-2">
+                Resource Types (<span x-text="resourceTypes.length"></span>)
+              </summary>
+              <div class="bg-gray-50 rounded-lg p-4 mt-2">
+                <pre class="text-xs overflow-x-auto" x-text="resourceTypes !== null ? JSON.stringify(resourceTypes, null, 2) : 'Loading...'"></pre>
+              </div>
+            </details>
+            <p class="text-sm text-gray-600 mt-1">
+              Defines the various resource types available within the SCIM service (e.g., "User", "Group"). Each resource type specifies its endpoint, schema, and supported operations, allowing clients to discover available resources and their locations.
+              <a href="https://datatracker.ietf.org/doc/html/rfc7643#section-6" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 underline ml-1">RFC 7643 §6</a>
+            </p>
           </div>
 
           <!-- Schemas -->
           <div class="mb-6">
-            <h4 class="text-md font-semibold text-gray-800 mb-2">Schemas (<span x-text="schemas.length"></span>)</h4>
-            <div class="bg-gray-50 rounded-lg p-4">
-              <pre class="text-xs overflow-x-auto" x-text="schemas !== null ? JSON.stringify(schemas, null, 2) : 'Loading...'"></pre>
-            </div>
+            <details>
+              <summary class="text-md font-semibold text-gray-800 cursor-pointer hover:text-gray-900 mb-2">
+                Schemas (<span x-text="schemas.length"></span>)
+              </summary>
+              <div class="bg-gray-50 rounded-lg p-4 mt-2">
+                <pre class="text-xs overflow-x-auto" x-text="schemas !== null ? JSON.stringify(schemas, null, 2) : 'Loading...'"></pre>
+              </div>
+            </details>
+            <p class="text-sm text-gray-600 mt-1">
+              Provides the structural definitions for SCIM resources, specifying attributes, data types, mutability, required fields, and validation rules. Schemas ensure consistent data representation and enable clients to understand the structure of resources they can create or modify.
+              <a href="https://datatracker.ietf.org/doc/html/rfc7643#section-7" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 underline ml-1">RFC 7643 §7</a>
+            </p>
           </div>
 
           <div class="mt-6 flex justify-end">

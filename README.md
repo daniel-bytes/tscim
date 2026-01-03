@@ -2,21 +2,40 @@
 
 tscim is a library that implements the core SCIM protocol, with hooks (called "adapters") for wiring up your own User and (optional) Group data stores.  tscim handles some of the trickier parts of the SCIM protocol, in particular filtering and patching.  Some demo applications are included to show the library used in action.
 
-## Examples
+SCIM RFCs:
+- Core Schema: https://datatracker.ietf.org/doc/html/rfc7643
+- Protocol: https://datatracker.ietf.org/doc/html/rfc7644
+
+## Setup
 
 <TODO: show how to install from npm>
 
+See examples below for how to import the various classes and types, depending on what you are trying to build.
+
+## Examples
+
 ### Example: Expose your domain model as SCIM
 
-<TODO>
+In order to expose Users and (optionally) Groups, you must first implement the `ResourceAdapter<TResource>` interface for each type.  Once these are implemented you can pass them into a new instance of the `ScimService` class.
+```typescript
+// TODO
+```
 
 ### Example: Interact with a remote SCIM server
 
-<TODO>
+A class `ScimClient` is provided that allows an application to interact with a remote SCIM server.
+
+```typescript
+// TODO
+```
 
 ### Example: Synchronize data
 
-<TODO>
+tscim includes some helper functions showing how to synchronize data across SCIM servers.  Generally you would have this point to a remote `ScimClient` and local `ScimService`, but there's nothing stopping you from using two `ScimClient` or two `ScimService` instances.
+
+```typescript
+// TODO
+```
 
 ## Architecture
 

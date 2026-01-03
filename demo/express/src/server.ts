@@ -44,6 +44,50 @@ function checkValidationResult(req: express.Request) {
   }
 }
 
+/**
+ * Populates the groups field on user(s) by finding all groups that contain the user as a member.
+ * This is required because the groups field is read-only and must be computed from group memberships.
+ */
+async function populateUserGroups(
+  users: User | User[],
+  scimServer: ScimService
+): Promise<void> {
+  // Get all groups to check memberships
+  const allGroupsResult = await scimServer.resources.getGroupsApi()?.list({});
+  if (!allGroupsResult || !allGroupsResult.Resources) {
+    return;
+  }
+
+  const allGroups = allGroupsResult.Resources;
+  const usersArray = Array.isArray(users) ? users : [users];
+
+  for (const user of usersArray) {
+    if (!user.id) continue;
+
+    // Find all groups that contain this user as a member
+    const userGroups = allGroups
+      .filter(
+        group =>
+          group.members?.some(member => member.value === user.id) ?? false
+      )
+      .map(group => {
+        const groupRef: { value: string; display?: string; $ref?: string } = {
+          value: group.id!,
+        };
+        if (group.displayName) {
+          groupRef.display = group.displayName;
+        }
+        if (group.meta?.location) {
+          groupRef.$ref = group.meta.location;
+        }
+        return groupRef;
+      });
+
+    // Populate the groups field (using type assertion since groups is readonly in the interface)
+    (user as User & { groups: typeof userGroups }).groups = userGroups;
+  }
+}
+
 // ---------------------------------------------------------------------------
 // SCIM Endpoints (RFC 7644 Section 3.2)
 // Each handler currently returns an empty JSON object as a placeholder.
@@ -120,6 +164,11 @@ app.get('/Users', async (req, res, next) => {
       )
     );
 
+    // Populate groups field for all users
+    if (result.Resources) {
+      await populateUserGroups(result.Resources, scimServer);
+    }
+
     res.json(result);
   } catch (error) {
     next(error);
@@ -128,6 +177,10 @@ app.get('/Users', async (req, res, next) => {
 app.get('/Users/:id', async (req, res, next) => {
   try {
     const result = await scimServer.resources.users.get({ id: req.params.id });
+
+    // Populate groups field for the user
+    await populateUserGroups(result, scimServer);
+
     res.json(result);
   } catch (error) {
     next(error);
@@ -138,6 +191,10 @@ app.post('/Users', async (req, res, next) => {
     const result = await scimServer.resources.users.create({
       resource: req.body as User,
     });
+
+    // Populate groups field for the newly created user
+    await populateUserGroups(result, scimServer);
+
     res.json(result);
   } catch (error) {
     next(error);
@@ -149,6 +206,10 @@ app.put('/Users/:id', async (req, res, next) => {
       id: req.params.id,
       resource: req.body as User,
     });
+
+    // Populate groups field for the updated user
+    await populateUserGroups(result, scimServer);
+
     res.json(result);
   } catch (error) {
     next(error);
@@ -160,6 +221,10 @@ app.patch('/Users/:id', async (req, res, next) => {
       id: req.params.id,
       patch: req.body as PatchRequest<User>,
     });
+
+    // Populate groups field for the patched user
+    await populateUserGroups(result, scimServer);
+
     res.json(result);
   } catch (error) {
     next(error);
