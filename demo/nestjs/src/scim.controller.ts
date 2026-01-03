@@ -31,7 +31,7 @@ import type { SynchronizeRequest } from './domain/synchronize.request';
 @Controller()
 export class ScimController {
   constructor(
-    @Inject(Tokens.ScimServer) private readonly scimService: ScimService,
+    @Inject(Tokens.ScimService) private readonly scimService: ScimService,
     @Inject(Tokens.ScimClient) private readonly scimClient: ScimClient,
   ) {}
 

@@ -4,6 +4,7 @@ import characterData from './character-data.json' with { type: 'json' };
 interface CharacterData {
   givenName: string;
   familyName: string;
+  nickName?: string;
   title: string;
   email: string;
   userName: string;
@@ -48,6 +49,7 @@ async function createUser(
       formatted: `${charData.givenName} ${charData.familyName}`,
     },
     displayName: `${charData.givenName} ${charData.familyName}`,
+    ...(charData.nickName && { nickName: charData.nickName }),
     title: charData.title,
     active: true,
     emails: [

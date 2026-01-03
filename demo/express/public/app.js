@@ -6,6 +6,7 @@ function scimApp() {
     viewMode: 'list', // 'list' or 'editUser' or 'editGroup'
     users: [],
     groups: [],
+    allGroups: [], // All groups for dropdowns (not paginated)
     loadingUsers: false,
     loadingGroups: false,
     error: null,
@@ -13,9 +14,9 @@ function scimApp() {
     showGroupModal: false,
     showMembersModal: false,
     showConfigModal: false,
-    serviceProviderConfig: null,
-    resourceTypes: [],
-    schemas: [],
+    serviceProviderConfig: null, // null means loading, {} means loaded but empty
+    resourceTypes: null, // null means loading, [] means loaded but empty
+    schemas: null, // null means loading, [] means loaded but empty
     editingUser: null,
     editingGroup: null,
     selectedGroup: null,
@@ -59,6 +60,7 @@ function scimApp() {
       entitlements: [],
       roles: [],
       x509Certificates: [],
+      manager: '',
       schemas: ['urn:ietf:params:scim:schemas:core:2.0:User'],
     },
     groupForm: {
@@ -72,6 +74,22 @@ function scimApp() {
         (this.selectedGroup.members || []).map(m => m.value)
       );
       return this.users.filter(user => !memberIds.has(user.id));
+    },
+
+    get availableManagers() {
+      // Exclude the current user being edited from the manager list
+      if (!this.editingUser) return this.users;
+      return this.users.filter(user => user.id !== this.editingUser.id);
+    },
+
+    getUserDisplayName(user) {
+      if (!user) return '';
+      const nameParts = [];
+      if (user.name?.givenName) nameParts.push(user.name.givenName);
+      if (user.name?.familyName) nameParts.push(user.name.familyName);
+      if (nameParts.length > 0) return `${nameParts.join(' ')} (${user.userName})`;
+      if (user.displayName) return `${user.displayName} (${user.userName})`;
+      return user.userName || '';
     },
 
     getMemberDisplayName(member) {
@@ -175,6 +193,17 @@ function scimApp() {
           startIndex: data.startIndex,
           itemsPerPage: data.itemsPerPage,
         };
+        
+        // If we're loading the first page with no filter, also update allGroups
+        if (this.groupPage === 1 && !this.groupSearchQuery && this.groups.length > 0) {
+          // If we got all groups (totalResults <= page size), use these
+          if (data.totalResults <= this.groupPageSize) {
+            this.allGroups = this.groups;
+          } else {
+            // Otherwise, load all groups separately
+            this.loadAllGroups();
+          }
+        }
       } catch (err) {
         // Show SCIM error details directly, or format other errors
         if (err.isScimError) {
@@ -189,9 +218,43 @@ function scimApp() {
       }
     },
 
-    openCreateUser() {
+    async loadAllGroups() {
+      // Load all groups without pagination for use in dropdowns
+      try {
+        const params = new URLSearchParams();
+        // Request a large number to get all groups (most implementations support this)
+        params.append('startIndex', '1');
+        params.append('count', '1000');
+
+        const response = await fetch(`${API_BASE}/Groups?${params.toString()}`);
+        if (response.ok) {
+          const data = await response.json();
+          // Store all groups in a separate property for dropdowns
+          this.allGroups = data.Resources || [];
+          console.log('Loaded all groups:', this.allGroups.length);
+        } else {
+          console.error('Failed to load all groups, response not ok:', response.status);
+          // Fallback to current groups if available
+          if (this.groups && this.groups.length > 0) {
+            this.allGroups = this.groups;
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load all groups:', err);
+        // Fallback to current groups if available
+        if (this.groups && this.groups.length > 0) {
+          this.allGroups = this.groups;
+        } else {
+          this.allGroups = [];
+        }
+      }
+    },
+
+    async openCreateUser() {
       this.editingUser = null;
       this.viewMode = 'editUser';
+      // Load all groups for group selection when creating a new user
+      await this.loadAllGroups();
       this.userForm = {
         userName: '',
         name: {
@@ -220,6 +283,7 @@ function scimApp() {
         entitlements: [],
         roles: [],
         x509Certificates: [],
+        manager: '',
         schemas: ['urn:ietf:params:scim:schemas:core:2.0:User'],
       };
     },
@@ -227,6 +291,12 @@ function scimApp() {
     async openEditUser(user) {
       this.editingUser = user;
       this.viewMode = 'editUser';
+
+      // Load all groups for group selection (use a large count to get all groups)
+      // Do this first to ensure groups are available
+      if (!this.allGroups || this.allGroups.length === 0) {
+        await this.loadAllGroups();
+      }
 
       // Load full user details if we only have list view data
       try {
@@ -241,9 +311,18 @@ function scimApp() {
       } catch (err) {
         this.populateUserForm(user);
       }
+      
+      // Ensure groups are loaded after user is loaded
+      if (!this.allGroups || this.allGroups.length === 0) {
+        await this.loadAllGroups();
+      }
     },
 
     populateUserForm(user) {
+      // Extract manager from Enterprise User Extension
+      const enterpriseUser = user['urn:ietf:params:scim:schemas:extension:enterprise:2.0:User'];
+      const managerValue = enterpriseUser?.manager?.value || '';
+
       this.userForm = {
         userName: user.userName || '',
         name: {
@@ -274,6 +353,7 @@ function scimApp() {
         x509Certificates: user.x509Certificates
           ? [...user.x509Certificates]
           : [],
+        manager: managerValue,
         schemas: user.schemas || ['urn:ietf:params:scim:schemas:core:2.0:User'],
       };
     },
@@ -341,6 +421,24 @@ function scimApp() {
       if (this.userForm.roles.length > 0) userData.roles = this.userForm.roles;
       if (this.userForm.x509Certificates.length > 0)
         userData.x509Certificates = this.userForm.x509Certificates;
+
+      // Enterprise User Extension - Manager
+      const enterpriseUser = this.editingUser?.['urn:ietf:params:scim:schemas:extension:enterprise:2.0:User'];
+      if (this.userForm.manager || enterpriseUser) {
+        // Add Enterprise User Extension schema if not already present
+        if (!userData.schemas.includes('urn:ietf:params:scim:schemas:extension:enterprise:2.0:User')) {
+          userData.schemas.push('urn:ietf:params:scim:schemas:extension:enterprise:2.0:User');
+        }
+        // Preserve existing enterprise user extension fields, update manager
+        const enterpriseData = { ...(enterpriseUser || {}) };
+        if (this.userForm.manager) {
+          enterpriseData.manager = { value: this.userForm.manager };
+        } else if (enterpriseUser?.manager) {
+          // Clear manager by omitting it (or set to null if server requires it)
+          delete enterpriseData.manager;
+        }
+        userData['urn:ietf:params:scim:schemas:extension:enterprise:2.0:User'] = enterpriseData;
+      }
 
       try {
         let response;
@@ -463,11 +561,31 @@ function scimApp() {
 
     // Group management functions
     get availableGroupsForUser() {
-      if (!this.editingUser) return this.groups;
-      const userGroupIds = new Set(
-        (this.editingUser.groups || []).map(g => g.value)
-      );
-      return this.groups.filter(group => !userGroupIds.has(group.id));
+      // Use allGroups if available, otherwise fall back to groups
+      let groupsList = [];
+      if (this.allGroups && this.allGroups.length > 0) {
+        groupsList = this.allGroups;
+      } else if (this.groups && this.groups.length > 0) {
+        groupsList = this.groups;
+      }
+      
+      if (!groupsList || groupsList.length === 0) {
+        return [];
+      }
+      
+      // Filter out groups without IDs
+      groupsList = groupsList.filter(group => group && group.id);
+      
+      // If editing a user, filter out groups they're already in
+      if (this.editingUser && this.editingUser.groups) {
+        const userGroupIds = new Set(
+          (this.editingUser.groups || []).map(g => g && g.value).filter(Boolean)
+        );
+        return groupsList.filter(group => !userGroupIds.has(group.id));
+      }
+      
+      // If creating a new user or no groups assigned, return all groups
+      return groupsList;
     },
 
     async addUserToGroup() {
@@ -477,7 +595,8 @@ function scimApp() {
       this.success = null;
 
       try {
-        const group = this.groups.find(g => g.id === this.selectedGroupToAdd);
+        const groupsList = this.allGroups && this.allGroups.length > 0 ? this.allGroups : this.groups;
+        const group = groupsList.find(g => g.id === this.selectedGroupToAdd);
         const memberValue = {
           value: this.editingUser.id,
           display: this.editingUser.displayName || this.editingUser.userName,
@@ -522,6 +641,7 @@ function scimApp() {
         this.success = 'User added to group successfully';
         this.selectedGroupToAdd = '';
         await this.loadGroups(); // Refresh groups list
+        await this.loadAllGroups(); // Refresh all groups for dropdown
         setTimeout(() => {
           this.success = null;
         }, 3000);
@@ -575,6 +695,7 @@ function scimApp() {
 
         this.success = 'User removed from group successfully';
         await this.loadGroups(); // Refresh groups list
+        await this.loadAllGroups(); // Refresh all groups for dropdown
         setTimeout(() => {
           this.success = null;
         }, 3000);
@@ -695,6 +816,7 @@ function scimApp() {
         this.closeGroupModal();
         this.groupPage = 1; // Reset to first page after create/update
         await this.loadGroups();
+        await this.loadAllGroups(); // Refresh all groups for dropdown
         setTimeout(() => {
           this.success = null;
         }, 3000);
@@ -736,6 +858,7 @@ function scimApp() {
           this.groupPage = this.groupPage - 1;
         }
         await this.loadGroups();
+        await this.loadAllGroups(); // Refresh all groups for dropdown
         setTimeout(() => {
           this.success = null;
         }, 3000);
@@ -896,17 +1019,33 @@ function scimApp() {
 
         if (configResponse.ok) {
           this.serviceProviderConfig = await configResponse.json();
+        } else {
+          // Set to empty object if request fails
+          this.serviceProviderConfig = {};
+          console.error('Failed to load ServiceProviderConfig:', configResponse.status, configResponse.statusText);
         }
         if (resourceTypesResponse.ok) {
           const resourceTypesData = await resourceTypesResponse.json();
           this.resourceTypes = resourceTypesData.Resources || [];
+        } else {
+          // Set to empty array if request fails
+          this.resourceTypes = [];
+          console.error('Failed to load ResourceTypes:', resourceTypesResponse.status, resourceTypesResponse.statusText);
         }
         if (schemasResponse.ok) {
           const schemasData = await schemasResponse.json();
           this.schemas = schemasData.Resources || [];
+        } else {
+          // Set to empty array if request fails
+          this.schemas = [];
+          console.error('Failed to load Schemas:', schemasResponse.status, schemasResponse.statusText);
         }
       } catch (err) {
         console.error('Failed to load SCIM configuration:', err);
+        // Set defaults on error - use empty values to indicate loaded but failed
+        this.serviceProviderConfig = {};
+        this.resourceTypes = [];
+        this.schemas = [];
       }
     },
 

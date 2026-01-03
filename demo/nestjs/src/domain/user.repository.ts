@@ -83,15 +83,43 @@ export class UserRepository {
 
     const stmt = this.db.prepare(`
       INSERT INTO users (
-        id, user_name, manager_id, email, alternate_email,
-        first_name, last_name, mobile_phone, home_phone, office_phone,
-        street_address, street_address2, city, state, postal_code, country,
-        attributes, created_at, version
+        id,
+        user_name,
+        manager_id,
+        email,
+        alternate_email,
+        first_name,
+        last_name,
+        phone,
+        alternate_phone,
+        street_address,
+        street_address2,
+        city,
+        state,
+        postal_code,
+        country,
+        attributes,
+        created_at,
+        version
       ) VALUES (
-        ?, ?, ?, ?, ?,
-        ?, ?, ?, ?, ?,
-        ?, ?, ?, ?, ?, ?,
-        ?, ?, ?
+        ?, -- id
+        ?, -- user_name
+        ?, -- manager_id
+        ?, -- email
+        ?, -- alternate_email
+        ?, -- first_name
+        ?, -- last_name
+        ?, -- phone
+        ?, -- alternate_phone
+        ?, -- street_address
+        ?, -- street_address2
+        ?, -- city
+        ?, -- state
+        ?, -- postal_code
+        ?, -- country
+        ?, -- attributes
+        ?, -- created_at
+        ?  -- version
       )
     `);
 

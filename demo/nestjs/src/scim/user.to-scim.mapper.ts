@@ -15,13 +15,17 @@ export function toScimUser(user: User): ScimUser {
   };
   return {
     schemas: [schemaUris.User, schemaUris.EnterpriseUser],
+    id: user.id,
     userName: user.userName,
     name: {
       formatted: user.fullName,
       familyName: user.name.lastName,
       givenName: user.name.firstName,
     },
-    displayName: user.fullName,
+    displayName:
+      (user.attributes?.displayName as string | undefined) ?? user.fullName,
+    nickName: user.attributes?.nickName as string | undefined,
+    profileUrl: user.attributes?.profileUrl as string | undefined,
     groups: user.teamIds?.map((teamId) => ({
       value: teamId,
     })),

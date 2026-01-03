@@ -186,6 +186,36 @@
             </div>
           </div>
 
+          <!-- Attributes -->
+          <div class="bg-white shadow rounded-lg p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Attributes</h3>
+            <p class="text-sm text-gray-500 mb-4">Custom key-value pairs for additional user data</p>
+            
+            <div x-show="userForm.attributes.length === 0" class="mb-4 text-sm text-gray-500 italic">
+              No attributes defined. Click "Add Attribute" to add one.
+            </div>
+            
+            <div class="space-y-3 mb-4">
+              <template x-for="(attr, index) in userForm.attributes" :key="index">
+                <div class="flex gap-2 items-center">
+                  <input type="text" x-model="attr.key" placeholder="Key"
+                    class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  <input type="text" x-model="attr.value" placeholder="Value"
+                    class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  <button type="button" @click="removeAttribute(index)"
+                    class="text-red-600 hover:text-red-800 px-3 py-2 rounded-md text-sm font-medium">
+                    Remove
+                  </button>
+                </div>
+              </template>
+            </div>
+            
+            <button type="button" @click="addAttribute()"
+              class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-md text-sm font-medium">
+              + Add Attribute
+            </button>
+          </div>
+
           <!-- Teams -->
           <div class="bg-white shadow rounded-lg p-6">
             <h3 class="text-lg font-medium text-gray-900 mb-4">Teams</h3>

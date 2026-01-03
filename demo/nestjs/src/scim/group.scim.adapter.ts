@@ -13,6 +13,7 @@ import type {
   Group,
 } from 'tscim';
 import { toScimGroup } from './group.to-scim.mapper';
+import { fromScimGroup } from './group.from-scim.mapper';
 
 /**
  * SCIM adapter for Group resources, using the internal Team domain model.
@@ -61,28 +62,46 @@ export class GroupScimAdapter extends ResourceAdapter<Group> {
     };
   }
 
-  public async createResource(_args: {
+  public async createResource(args: {
     resource: Group;
   }): Promise<AdapterSingleResult<Group>> {
     await Promise.resolve();
-    void _args;
-    throw new Error('Method not implemented.');
+    const team = fromScimGroup(args.resource);
+    const { id, createdAt, updatedAt, version, ...createTeam } = team;
+    const result = this.teamRepository.create(createTeam);
+    const scimGroup = toScimGroup(result);
+    return {
+      id: result.id,
+      result: scimGroup,
+    };
   }
 
-  public async updateResource(_args: {
+  public async updateResource(args: {
     id: ResourceId;
     resource: Group;
   }): Promise<AdapterSingleResult<Group>> {
     await Promise.resolve();
-    void _args;
-    throw new Error('Method not implemented.');
+    const team = fromScimGroup(args.resource);
+    const { id, createdAt, version, ...updateTeam } = team;
+    const result = this.teamRepository.update(args.id, updateTeam);
+    if (!result) {
+      throw new ScimNotFoundError(`Group not found`, 'Group', args.id);
+    }
+    const scimGroup = toScimGroup(result);
+    return {
+      id: args.id,
+      result: scimGroup,
+    };
   }
 
-  public async deleteResource(_args: {
+  public async deleteResource(args: {
     id: ResourceId;
   }): Promise<AdapterBooleanResult<Group>> {
     await Promise.resolve();
-    void _args;
-    throw new Error('Method not implemented.');
+    const deleted = this.teamRepository.delete(args.id);
+    return {
+      id: args.id,
+      result: deleted,
+    };
   }
 }

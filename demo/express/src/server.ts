@@ -52,9 +52,9 @@ function checkValidationResult(req: express.Request) {
 //
 // Service Provider Configuration
 //
-app.get('/ServiceProviderConfig', (_req, res, next) => {
+app.get('/ServiceProviderConfig', async (_req, res, next) => {
   try {
-    const result = scimServer.config.serviceProvider.get();
+    const result = await scimServer.config.serviceProvider.get();
     res.json(result);
   } catch (error) {
     next(error);
@@ -64,18 +64,18 @@ app.get('/ServiceProviderConfig', (_req, res, next) => {
 //
 // Resource Types
 //
-app.get('/ResourceTypes', (_req, res, next) => {
+app.get('/ResourceTypes', async (_req, res, next) => {
   try {
-    const result = scimServer.config.resourceTypes.list();
+    const result = await scimServer.config.resourceTypes.list();
     res.json(result);
   } catch (error) {
     next(error);
   }
 });
-app.get('/ResourceTypes/:id', validateSchemaUri, (req, res, next) => {
+app.get('/ResourceTypes/:id', validateSchemaUri, async (req, res, next) => {
   try {
     checkValidationResult(req);
-    const result = scimServer.config.resourceTypes.get({
+    const result = await scimServer.config.resourceTypes.get({
       id: req.params.id as SchemaUri,
     });
     res.json(result);
@@ -87,18 +87,18 @@ app.get('/ResourceTypes/:id', validateSchemaUri, (req, res, next) => {
 //
 // Schemas
 //
-app.get('/Schemas', (_req, res, next) => {
+app.get('/Schemas', async (_req, res, next) => {
   try {
-    const result = scimServer.config.schemas.list();
+    const result = await scimServer.config.schemas.list();
     res.json(result);
   } catch (error) {
     next(error);
   }
 });
-app.get('/Schemas/:id', validateSchemaUri, (req, res, next) => {
+app.get('/Schemas/:id', validateSchemaUri, async (req, res, next) => {
   try {
     checkValidationResult(req);
-    const result = scimServer.config.schemas.get({
+    const result = await scimServer.config.schemas.get({
       id: req.params.id as SchemaUri,
     });
     res.json(result);

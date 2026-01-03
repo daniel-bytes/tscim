@@ -60,6 +60,7 @@ function app() {
         postalCode: '',
         country: '',
       },
+      attributes: [],
     },
 
     teamForm: {
@@ -223,6 +224,7 @@ function app() {
           postalCode: '',
           country: '',
         },
+        attributes: [],
       };
       this.userTeams = [];
       // Load all users for manager dropdown
@@ -254,6 +256,14 @@ function app() {
     },
 
     populateUserForm(user) {
+      // Convert attributes object to array of {key, value} pairs
+      const attributesArray = [];
+      if (user.attributes && typeof user.attributes === 'object') {
+        for (const [key, value] of Object.entries(user.attributes)) {
+          attributesArray.push({ key, value: String(value) });
+        }
+      }
+
       this.userForm = {
         userName: user.userName || '',
         managerId: user.managerId || '',
@@ -278,6 +288,7 @@ function app() {
           postalCode: user.address?.postalCode || '',
           country: user.address?.country || '',
         },
+        attributes: attributesArray,
       };
     },
 
@@ -339,6 +350,37 @@ function app() {
         if (this.userForm.address.state) userData.address.state = this.userForm.address.state;
         if (this.userForm.address.postalCode) userData.address.postalCode = this.userForm.address.postalCode;
         if (this.userForm.address.country) userData.address.country = this.userForm.address.country;
+      }
+
+      // Convert attributes array to object, filtering out empty keys
+      const attributes = {};
+      if (this.userForm.attributes && this.userForm.attributes.length > 0) {
+        for (const attr of this.userForm.attributes) {
+          if (attr.key && attr.key.trim()) {
+            const trimmedKey = attr.key.trim();
+            const value = attr.value;
+            // Try to parse as number or boolean, otherwise keep as string
+            if (value === 'true' || value === 'false') {
+              attributes[trimmedKey] = value === 'true';
+            } else if (value === '' || value === null || value === undefined) {
+              // Skip empty values
+              continue;
+            } else if (!isNaN(value) && value !== '') {
+              // Try to parse as number
+              const numValue = Number(value);
+              if (!isNaN(numValue) && isFinite(numValue)) {
+                attributes[trimmedKey] = numValue;
+              } else {
+                attributes[trimmedKey] = value;
+              }
+            } else {
+              attributes[trimmedKey] = value;
+            }
+          }
+        }
+        if (Object.keys(attributes).length > 0) {
+          userData.attributes = attributes;
+        }
       }
 
       try {
@@ -758,6 +800,14 @@ function app() {
 
     closeConfigModal() {
       this.showConfigModal = false;
+    },
+
+    addAttribute() {
+      this.userForm.attributes.push({ key: '', value: '' });
+    },
+
+    removeAttribute(index) {
+      this.userForm.attributes.splice(index, 1);
     },
   };
 }

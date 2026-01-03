@@ -73,7 +73,6 @@ export class ScimHttpClient {
 
     try {
       const response = await fetch(url, requestOptions);
-      console.log(response.status, response.statusText); // DELETEME
 
       // Handle empty responses (e.g., DELETE 204)
       if (response.status === 204) {
@@ -83,7 +82,6 @@ export class ScimHttpClient {
       if (response.status === 201) {
         // For 201, try to parse the response body
         const text = await response.text();
-        console.log(text); // DELETEME
         if (!text) {
           return undefined as T;
         }
@@ -92,7 +90,6 @@ export class ScimHttpClient {
 
       // Parse response body
       const responseText = await response.text();
-      console.log(responseText); // DELETEME
       if (!responseText) {
         if (!response.ok) {
           throw this.createErrorFromResponse(
@@ -133,7 +130,6 @@ export class ScimHttpClient {
 
       return responseData as T;
     } catch (error) {
-      console.error(args, error); // DELETEME
       // Re-throw SCIM errors as-is
       if (error instanceof ScimError) {
         throw error;

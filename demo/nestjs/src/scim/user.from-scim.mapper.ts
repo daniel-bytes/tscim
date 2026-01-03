@@ -9,6 +9,7 @@ export function fromScimUser(user: ScimUser): User {
   const enterpriseUser = user[ENTERPRISE_USER_SCHEMA] as
     | {
         manager?: { value?: string };
+        employeeNumber?: string;
         costCenter?: string;
         organization?: string;
         division?: string;
@@ -22,6 +23,9 @@ export function fromScimUser(user: ScimUser): User {
     emails?: Array<{ primary?: boolean; value?: string }>;
     phoneNumbers?: Array<{ primary?: boolean; value?: string }>;
     name?: { givenName?: string; familyName?: string };
+    displayName?: string;
+    nickName?: string;
+    profileUrl?: string;
     title?: string;
     userType?: string;
     preferredLanguage?: string;
@@ -57,6 +61,9 @@ export function fromScimUser(user: ScimUser): User {
     },
     address: fromScimAddress(userWithTypedProps.addresses?.[0]),
     attributes: {
+      displayName: userWithTypedProps.displayName,
+      nickName: userWithTypedProps.nickName,
+      profileUrl: userWithTypedProps.profileUrl,
       title: userWithTypedProps.title,
       userType: userWithTypedProps.userType,
       preferredLanguage: userWithTypedProps.preferredLanguage,
@@ -73,6 +80,10 @@ export function fromScimUser(user: ScimUser): User {
     version: userWithTypedProps.meta?.version,
   });
 
+  if (enterpriseUser?.employeeNumber) {
+    result.attributes = result.attributes || {};
+    result.attributes.employeeNumber = enterpriseUser.employeeNumber;
+  }
   if (enterpriseUser?.costCenter) {
     result.attributes = result.attributes || {};
     result.attributes.costCenter = enterpriseUser.costCenter;

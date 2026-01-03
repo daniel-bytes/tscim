@@ -44,7 +44,7 @@ import { UserScimAdapter } from './scim/user.scim.adapter';
     UserScimAdapter,
     GroupScimAdapter,
     {
-      provide: Tokens.ScimServer,
+      provide: Tokens.ScimService,
       useFactory: (
         userAdapter: UserScimAdapter,
         groupAdapter: GroupScimAdapter,

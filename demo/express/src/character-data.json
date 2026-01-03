@@ -29,6 +29,7 @@
           {
             "givenName": "Jim",
             "familyName": "Halpert",
+            "nickName": "Big Tuna",
             "title": "Sales Representative",
             "email": "jim.halpert@company.com",
             "userName": "jhalpert",
@@ -38,7 +39,7 @@
           {
             "givenName": "Dwight",
             "familyName": "Schrute",
-            "title": "Assistant Regional Manager",
+            "title": "Assistant to the Regional Manager",
             "email": "dwight.schrute@company.com",
             "userName": "dschrute",
             "division": "Finance",
