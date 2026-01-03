@@ -1,0 +1,291 @@
+{
+  "ceo": {
+    "givenName": "Alan",
+    "familyName": "Brand",
+    "title": "Chief Executive Officer",
+    "email": "alan.brand@company.com",
+    "userName": "abrand",
+    "division": "Executive",
+    "department": "Executive"
+  },
+  "cfo": {
+    "givenName": "David",
+    "familyName": "Wallace",
+    "title": "Chief Financial Officer",
+    "email": "david.wallace@company.com",
+    "userName": "dwallace",
+    "division": "Finance",
+    "department": "Finance",
+    "team": [
+      {
+        "givenName": "Michael",
+        "familyName": "Scott",
+        "title": "Regional Manager",
+        "email": "michael.scott@company.com",
+        "userName": "mscott",
+        "division": "Finance",
+        "department": "Sales",
+        "team": [
+          {
+            "givenName": "Jim",
+            "familyName": "Halpert",
+            "title": "Sales Representative",
+            "email": "jim.halpert@company.com",
+            "userName": "jhalpert",
+            "division": "Finance",
+            "department": "Sales"
+          },
+          {
+            "givenName": "Dwight",
+            "familyName": "Schrute",
+            "title": "Assistant Regional Manager",
+            "email": "dwight.schrute@company.com",
+            "userName": "dschrute",
+            "division": "Finance",
+            "department": "Sales"
+          },
+          {
+            "givenName": "Pam",
+            "familyName": "Beesly",
+            "title": "Receptionist",
+            "email": "pam.beesly@company.com",
+            "userName": "pbeesly",
+            "division": "Finance",
+            "department": "Administration"
+          },
+          {
+            "givenName": "Stanley",
+            "familyName": "Hudson",
+            "title": "Sales Representative",
+            "email": "stanley.hudson@company.com",
+            "userName": "shudson",
+            "division": "Finance",
+            "department": "Sales"
+          },
+          {
+            "givenName": "Phyllis",
+            "familyName": "Vance",
+            "title": "Sales Representative",
+            "email": "phyllis.vance@company.com",
+            "userName": "pvance",
+            "division": "Finance",
+            "department": "Sales"
+          },
+          {
+            "givenName": "Angela",
+            "familyName": "Martin",
+            "title": "Senior Accountant",
+            "email": "angela.martin@company.com",
+            "userName": "amartin",
+            "division": "Finance",
+            "department": "Accounting"
+          },
+          {
+            "givenName": "Oscar",
+            "familyName": "Martinez",
+            "title": "Accountant",
+            "email": "oscar.martinez@company.com",
+            "userName": "omartinez",
+            "division": "Finance",
+            "department": "Accounting"
+          },
+          {
+            "givenName": "Kevin",
+            "familyName": "Malone",
+            "title": "Accountant",
+            "email": "kevin.malone@company.com",
+            "userName": "kmalone",
+            "division": "Finance",
+            "department": "Accounting"
+          },
+          {
+            "givenName": "Toby",
+            "familyName": "Flenderson",
+            "title": "Human Resources Representative",
+            "email": "toby.flenderson@company.com",
+            "userName": "tflenderson",
+            "division": "Finance",
+            "department": "Human Resources"
+          },
+          {
+            "givenName": "Kelly",
+            "familyName": "Kapoor",
+            "title": "Customer Service Representative",
+            "email": "kelly.kapoor@company.com",
+            "userName": "kkapoor",
+            "division": "Finance",
+            "department": "Customer Service"
+          },
+          {
+            "givenName": "Ryan",
+            "familyName": "Howard",
+            "title": "Temp",
+            "email": "ryan.howard@company.com",
+            "userName": "rhoward",
+            "division": "Finance",
+            "department": "Sales"
+          }
+        ]
+      },
+      {
+        "givenName": "Jan",
+        "familyName": "Levinson",
+        "title": "VP of Sales",
+        "email": "jan.levinson@company.com",
+        "userName": "jlevinson",
+        "division": "Finance",
+        "department": "Sales"
+      }
+    ]
+  },
+  "cto": {
+    "givenName": "Richard",
+    "familyName": "Hendriks",
+    "title": "Chief Technology Officer",
+    "email": "richard.hendriks@company.com",
+    "userName": "rhendriks",
+    "division": "Engineering",
+    "department": "Engineering",
+    "team": [
+      {
+        "givenName": "Erlich",
+        "familyName": "Bachman",
+        "title": "VP of Engineering",
+        "email": "erlich.bachman@company.com",
+        "userName": "ebachman",
+        "division": "Engineering",
+        "department": "Engineering",
+        "team": [
+          {
+            "givenName": "Bertram",
+            "familyName": "Gilfoyle",
+            "title": "Senior Software Engineer",
+            "email": "bertram.gilfoyle@company.com",
+            "userName": "bgilfoyle",
+            "division": "Engineering",
+            "department": "Engineering"
+          },
+          {
+            "givenName": "Dinesh",
+            "familyName": "Chugtai",
+            "title": "Senior Software Engineer",
+            "email": "dinesh.chugtai@company.com",
+            "userName": "dchugtai",
+            "division": "Engineering",
+            "department": "Engineering"
+          },
+          {
+            "givenName": "Jared",
+            "familyName": "Dunn",
+            "title": "Head of Business Development",
+            "email": "jared.dunn@company.com",
+            "userName": "jdunn",
+            "division": "Engineering",
+            "department": "Business Development"
+          },
+          {
+            "givenName": "Nelson",
+            "familyName": "Bighetti",
+            "title": "Software Engineer",
+            "email": "nelson.bighetti@company.com",
+            "userName": "nbighetti",
+            "division": "Engineering",
+            "department": "Engineering"
+          }
+        ]
+      },
+      {
+        "givenName": "Monica",
+        "familyName": "Hall",
+        "title": "VP of Operations",
+        "email": "monica.hall@company.com",
+        "userName": "mhall",
+        "division": "Engineering",
+        "department": "Operations"
+      },
+      {
+        "givenName": "Laurie",
+        "familyName": "Bream",
+        "title": "Board Member",
+        "email": "laurie.bream@company.com",
+        "userName": "lbream",
+        "division": "Engineering",
+        "department": "Executive"
+      }
+    ]
+  },
+  "coo": {
+    "givenName": "Bill",
+    "familyName": "Lumbergh",
+    "title": "Chief Operating Officer",
+    "email": "bill.lumbergh@company.com",
+    "userName": "blumbergh",
+    "division": "Operations",
+    "department": "Operations",
+    "team": [
+      {
+        "givenName": "Peter",
+        "familyName": "Gibbons",
+        "title": "Software Engineer",
+        "email": "peter.gibbons@company.com",
+        "userName": "pgibbons",
+        "division": "Operations",
+        "department": "Engineering"
+      },
+      {
+        "givenName": "Samir",
+        "familyName": "Nagheenanajar",
+        "title": "Software Engineer",
+        "email": "samir.nagheenanajar@company.com",
+        "userName": "snagheenanajar",
+        "division": "Operations",
+        "department": "Engineering"
+      },
+      {
+        "givenName": "Michael",
+        "familyName": "Bolton",
+        "title": "Software Engineer",
+        "email": "michael.bolton@company.com",
+        "userName": "mbolton",
+        "division": "Operations",
+        "department": "Engineering"
+      },
+      {
+        "givenName": "Milton",
+        "familyName": "Waddams",
+        "title": "Collation Specialist",
+        "email": "milton.waddams@company.com",
+        "userName": "mwaddams",
+        "division": "Operations",
+        "department": "Administration"
+      },
+      {
+        "givenName": "Tom",
+        "familyName": "Smykowski",
+        "title": "Consultant",
+        "email": "tom.smykowski@company.com",
+        "userName": "tsmykowski",
+        "division": "Operations",
+        "department": "Consulting"
+      },
+      {
+        "givenName": "Bob",
+        "familyName": "Slydell",
+        "title": "Efficiency Consultant",
+        "email": "bob.slydell@company.com",
+        "userName": "bslydell",
+        "division": "Operations",
+        "department": "Consulting"
+      },
+      {
+        "givenName": "Bob",
+        "familyName": "Porter",
+        "title": "Efficiency Consultant",
+        "email": "bob.porter@company.com",
+        "userName": "bporter",
+        "division": "Operations",
+        "department": "Consulting"
+      }
+    ]
+  }
+}

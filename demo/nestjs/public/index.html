@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NestJS Admin UI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <style>
+    [x-cloak] {
+      display: none !important;
+    }
+  </style>
+</head>
+
+<body class="bg-gray-50">
+  <div x-data="app()" x-init="loadUsers(); loadTeams(); loadConfig()" class="min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div class="flex justify-between items-center">
+          <h1 class="text-2xl font-bold text-gray-900">NestJS Admin UI</h1>
+          <div class="flex items-center gap-3">
+            <button @click="openConfigModal()" class="text-sm text-gray-600 hover:text-gray-900 underline">
+              SCIM Configuration
+            </button>
+            <button @click="openSyncModal()"
+              class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center">
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+              </svg>
+              Synchronize
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <!-- User Editor (Full Page) -->
+      <div x-show="viewMode === 'editUser'" x-cloak>
+        <div class="mb-6">
+          <button @click="closeUserEditor()" class="text-gray-600 hover:text-gray-900 mb-4 flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+            </svg>
+            Back to Users
+          </button>
+          <h2 class="text-2xl font-bold text-gray-900" x-text="editingUser ? 'Edit User' : 'Create User'"></h2>
+        </div>
+
+        <!-- Error Message -->
+        <div x-show="error" x-cloak
+          class="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded flex items-start justify-between">
+          <div class="flex-1">
+            <p class="font-medium">Error</p>
+            <p x-text="error"></p>
+          </div>
+          <button @click="error = null" class="ml-4 text-red-600 hover:text-red-800">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Success Message -->
+        <div x-show="success" x-cloak class="mb-4 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
+          <p x-text="success"></p>
+        </div>
+
+        <form @submit.prevent="saveUser()" class="space-y-6">
+          <!-- Basic Information -->
+          <div class="bg-white shadow rounded-lg p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Basic Information</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">User Name *</label>
+                <input type="text" x-model="userForm.userName" required
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Manager</label>
+                <select x-model="userForm.managerId"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option value="">No Manager</option>
+                  <template x-for="manager in availableManagers" :key="manager.id">
+                    <option :value="manager.id" x-text="manager.userName + ' (' + manager.name.firstName + ' ' + manager.name.lastName + ')'"></option>
+                  </template>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Name -->
+          <div class="bg-white shadow rounded-lg p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Name</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">First Name *</label>
+                <input type="text" x-model="userForm.name.firstName" required
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Last Name *</label>
+                <input type="text" x-model="userForm.name.lastName" required
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Email -->
+          <div class="bg-white shadow rounded-lg p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Email</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Primary Email *</label>
+                <input type="email" x-model="userForm.email.primary" required
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Alternate Email</label>
+                <input type="email" x-model="userForm.email.alternate"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Phone -->
+          <div class="bg-white shadow rounded-lg p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Phone Numbers</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Mobile *</label>
+                <input type="tel" x-model="userForm.phone.mobile" required
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Home</label>
+                <input type="tel" x-model="userForm.phone.home"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Office</label>
+                <input type="tel" x-model="userForm.phone.office"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Address -->
+          <div class="bg-white shadow rounded-lg p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Address</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Street</label>
+                <input type="text" x-model="userForm.address.street"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Street 2</label>
+                <input type="text" x-model="userForm.address.street2"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">City</label>
+                <input type="text" x-model="userForm.address.city"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">State</label>
+                <input type="text" x-model="userForm.address.state"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Postal Code</label>
+                <input type="text" x-model="userForm.address.postalCode"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                <input type="text" x-model="userForm.address.country"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Teams -->
+          <div class="bg-white shadow rounded-lg p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Teams</h3>
+            <div x-show="editingUser" class="mb-4">
+              <div class="flex gap-2 items-end mb-4">
+                <div class="flex-1">
+                  <select x-model="selectedTeamToAdd"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Select a team...</option>
+                    <template x-for="team in availableTeamsForUser" :key="team.id">
+                      <option :value="team.id" x-text="team.name"></option>
+                    </template>
+                  </select>
+                </div>
+                <div class="w-32">
+                  <select x-model="selectedTeamRole"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="viewer">Viewer</option>
+                    <option value="collaborator">Collaborator</option>
+                    <option value="maintainer">Maintainer</option>
+                    <option value="guest">Guest</option>
+                  </select>
+                </div>
+                <button type="button" @click="addUserToTeam()" :disabled="!selectedTeamToAdd"
+                  :class="!selectedTeamToAdd ? 'opacity-50 cursor-not-allowed' : ''"
+                  class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+                  Add to Team
+                </button>
+              </div>
+              <div x-show="userTeams.length > 0" class="space-y-2">
+                <template x-for="team in userTeams" :key="team.id">
+                  <div class="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-md">
+                    <div>
+                      <p class="text-sm font-medium text-gray-900" x-text="team.name"></p>
+                      <p class="text-xs text-gray-500" x-text="'Role: ' + team.role"></p>
+                    </div>
+                    <button type="button" @click="removeUserFromTeam(team.id)"
+                      class="text-red-600 hover:text-red-800 text-sm font-medium">
+                      Remove
+                    </button>
+                  </div>
+                </template>
+              </div>
+              <p x-show="userTeams.length === 0" class="text-sm text-gray-500">
+                User is not a member of any teams
+              </p>
+            </div>
+            <p x-show="!editingUser" class="text-sm text-gray-500">Save the user first to manage team memberships</p>
+          </div>
+
+          <!-- Form Actions -->
+          <div class="flex justify-end space-x-3">
+            <button type="button" @click="closeUserEditor()"
+              class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2 rounded-md text-sm font-medium">
+              Cancel
+            </button>
+            <button type="submit"
+              class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md text-sm font-medium">
+              Save User
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- List Views (Users/Teams) -->
+      <div x-show="viewMode === 'list'" x-cloak>
+        <!-- Tabs -->
+        <div class="border-b border-gray-200 mb-6">
+          <nav class="-mb-px flex space-x-8">
+            <button @click="activeTab = 'users'; userPage = 1; userSearchQuery = ''; loadUsers()"
+              :class="activeTab === 'users' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+              class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+              Users
+            </button>
+            <button @click="activeTab = 'teams'; teamPage = 1; teamSearchQuery = ''; loadTeams()"
+              :class="activeTab === 'teams' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+              class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+              Teams
+            </button>
+          </nav>
+        </div>
+
+        <!-- Error Message -->
+        <div x-show="error" x-cloak
+          class="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded flex items-start justify-between">
+          <div class="flex-1">
+            <p class="font-medium">Error</p>
+            <p x-text="error"></p>
+          </div>
+          <button @click="error = null" class="ml-4 text-red-600 hover:text-red-800">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Success Message -->
+        <div x-show="success" x-cloak class="mb-4 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
+          <p x-text="success"></p>
+        </div>
+
+        <!-- Users Tab -->
+        <div x-show="activeTab === 'users'" x-cloak>
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-semibold text-gray-900">Users</h2>
+            <button @click="openCreateUser()"
+              class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+              + Create User
+            </button>
+          </div>
+
+          <!-- Search/Filter -->
+          <div class="mb-4">
+            <form @submit.prevent="userPage = 1; loadUsers()" class="flex space-x-2">
+              <input type="text" x-model="userSearchQuery" placeholder="Search users..."
+                class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <button type="submit"
+                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+                Search
+              </button>
+              <button type="button" @click="userSearchQuery = ''; userPage = 1; loadUsers()"
+                class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm font-medium">
+                Clear
+              </button>
+            </form>
+          </div>
+
+          <!-- Users List -->
+          <div x-show="loadingUsers" class="text-center py-8">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <p class="mt-2 text-gray-600">Loading users...</p>
+          </div>
+
+          <div x-show="!loadingUsers && users.length === 0" class="text-center py-8 text-gray-500">
+            <span x-show="userSearchQuery">No users match your search.</span>
+            <span x-show="!userSearchQuery">No users found. Create your first user!</span>
+          </div>
+
+          <div x-show="!loadingUsers && users.length > 0" class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <template x-for="user in users" :key="user.id">
+              <div class="bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow">
+                <div class="flex justify-between items-start mb-2">
+                  <div>
+                    <h3 class="font-semibold text-gray-900" x-text="user.userName"></h3>
+                    <p class="text-sm text-gray-500" x-text="user.name.firstName + ' ' + user.name.lastName"></p>
+                  </div>
+                </div>
+                <div class="mt-2 space-y-1">
+                  <p class="text-sm text-gray-600" x-text="user.email.primary"></p>
+                  <p class="text-sm text-gray-600" x-text="user.phone.mobile"></p>
+                </div>
+                <div class="mt-4 flex space-x-2">
+                  <button @click="openEditUser(user)"
+                    class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded text-sm font-medium">
+                    Edit
+                  </button>
+                  <button @click="deleteUser(user.id)"
+                    class="flex-1 bg-red-100 hover:bg-red-200 text-red-700 px-3 py-2 rounded text-sm font-medium">
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </template>
+          </div>
+
+          <!-- Pagination for Users -->
+          <div x-show="!loadingUsers && users.length > 0" class="mt-6 flex items-center justify-between">
+            <div class="text-sm text-gray-700">
+              Showing <span x-text="(userPage - 1) * userPageSize + 1"></span> to
+              <span x-text="Math.min(userPage * userPageSize, userTotal)"></span> of
+              <span x-text="userTotal"></span> users
+            </div>
+            <div class="flex space-x-2">
+              <button @click="userPage = Math.max(1, userPage - 1); loadUsers()" :disabled="userPage === 1"
+                :class="userPage === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-200'"
+                class="px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white">
+                Previous
+              </button>
+              <button @click="userPage = userPage + 1; loadUsers()"
+                :disabled="userPage * userPageSize >= userTotal"
+                :class="userPage * userPageSize >= userTotal ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-200'"
+                class="px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white">
+                Next
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Teams Tab -->
+        <div x-show="activeTab === 'teams'" x-cloak>
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-semibold text-gray-900">Teams</h2>
+            <button @click="openCreateTeamModal()"
+              class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+              + Create Team
+            </button>
+          </div>
+
+          <!-- Search/Filter -->
+          <div class="mb-4">
+            <form @submit.prevent="teamPage = 1; loadTeams()" class="flex space-x-2">
+              <input type="text" x-model="teamSearchQuery" placeholder="Search teams..."
+                class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <button type="submit"
+                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+                Search
+              </button>
+              <button type="button" @click="teamSearchQuery = ''; teamPage = 1; loadTeams()"
+                class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm font-medium">
+                Clear
+              </button>
+            </form>
+          </div>
+
+          <!-- Teams List -->
+          <div x-show="loadingTeams" class="text-center py-8">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <p class="mt-2 text-gray-600">Loading teams...</p>
+          </div>
+
+          <div x-show="!loadingTeams && teams.length === 0" class="text-center py-8 text-gray-500">
+            <span x-show="teamSearchQuery">No teams match your search.</span>
+            <span x-show="!teamSearchQuery">No teams found. Create your first team!</span>
+          </div>
+
+          <div x-show="!loadingTeams && teams.length > 0" class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <template x-for="team in teams" :key="team.id">
+              <div class="bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow">
+                <div class="flex justify-between items-start mb-2">
+                  <h3 class="font-semibold text-gray-900" x-text="team.name"></h3>
+                </div>
+                <div class="mt-2">
+                  <p class="text-sm text-gray-600" x-show="team.description" x-text="team.description"></p>
+                  <p class="text-sm text-gray-600">
+                    <span x-text="team.members?.length || 0"></span> member(s)
+                  </p>
+                </div>
+                <div class="mt-4 flex space-x-2">
+                  <button @click="openEditTeamModal(team)"
+                    class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded text-sm font-medium">
+                    Edit
+                  </button>
+                  <button @click="openManageMembersModal(team)"
+                    class="flex-1 bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-2 rounded text-sm font-medium">
+                    Members
+                  </button>
+                  <button @click="deleteTeam(team.id)"
+                    class="flex-1 bg-red-100 hover:bg-red-200 text-red-700 px-3 py-2 rounded text-sm font-medium">
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </template>
+          </div>
+
+          <!-- Pagination for Teams -->
+          <div x-show="!loadingTeams && teams.length > 0" class="mt-6 flex items-center justify-between">
+            <div class="text-sm text-gray-700">
+              Showing <span x-text="(teamPage - 1) * teamPageSize + 1"></span> to
+              <span x-text="Math.min(teamPage * teamPageSize, teamTotal)"></span> of
+              <span x-text="teamTotal"></span> teams
+            </div>
+            <div class="flex space-x-2">
+              <button @click="teamPage = Math.max(1, teamPage - 1); loadTeams()" :disabled="teamPage === 1"
+                :class="teamPage === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-200'"
+                class="px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white">
+                Previous
+              </button>
+              <button @click="teamPage = teamPage + 1; loadTeams()"
+                :disabled="teamPage * teamPageSize >= teamTotal"
+                :class="teamPage * teamPageSize >= teamTotal ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-200'"
+                class="px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white">
+                Next
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Create/Edit Team Modal -->
+    <div x-show="showTeamModal" x-cloak
+      class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
+      @click.self="closeTeamModal()">
+      <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+          <h3 class="text-lg font-medium text-gray-900 mb-4" x-text="editingTeam ? 'Edit Team' : 'Create Team'"></h3>
+          <form @submit.prevent="saveTeam()">
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+                <input type="text" x-model="teamForm.name" required
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <textarea x-model="teamForm.description" rows="3"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+              </div>
+            </div>
+            <div class="mt-6 flex space-x-3">
+              <button type="button" @click="closeTeamModal()"
+                class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm font-medium">
+                Cancel
+              </button>
+              <button type="submit"
+                class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+                Save
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Manage Members Modal -->
+    <div x-show="showMembersModal" x-cloak
+      class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
+      @click.self="closeMembersModal()">
+      <div class="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white m-4">
+        <div class="mt-3">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">
+            Manage Members: <span x-text="selectedTeam?.name"></span>
+          </h3>
+
+          <!-- Add Member Section -->
+          <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+            <h4 class="text-sm font-medium text-gray-700 mb-2">Add Member</h4>
+            <div class="flex space-x-2">
+              <select x-model="selectedUserToAdd"
+                class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">Select a user...</option>
+                <template x-for="user in availableUsers" :key="user.id">
+                  <option :value="user.id" x-text="user.userName"></option>
+                </template>
+              </select>
+              <select x-model="selectedMemberRole"
+                class="w-32 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="viewer">Viewer</option>
+                <option value="collaborator">Collaborator</option>
+                <option value="maintainer">Maintainer</option>
+                <option value="guest">Guest</option>
+              </select>
+              <button @click="addMemberToTeam()" :disabled="!selectedUserToAdd"
+                :class="!selectedUserToAdd ? 'opacity-50 cursor-not-allowed' : ''"
+                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+                Add
+              </button>
+            </div>
+          </div>
+
+          <!-- Current Members List -->
+          <div>
+            <h4 class="text-sm font-medium text-gray-700 mb-2">Current Members (<span
+                x-text="selectedTeam?.members?.length || 0"></span>)</h4>
+            <div x-show="!selectedTeam?.members || selectedTeam.members.length === 0"
+              class="text-center py-4 text-gray-500 text-sm">
+              No members in this team.
+            </div>
+            <div x-show="selectedTeam?.members && selectedTeam.members.length > 0" class="space-y-2">
+              <template x-for="member in selectedTeam.members" :key="member.userId">
+                <div class="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-md">
+                  <div>
+                    <p class="text-sm font-medium text-gray-900" x-text="getUserName(member.userId)"></p>
+                    <p class="text-xs text-gray-500" x-text="'Role: ' + member.role"></p>
+                  </div>
+                  <button @click="removeMemberFromTeam(member.userId)"
+                    class="text-red-600 hover:text-red-800 text-sm font-medium">
+                    Remove
+                  </button>
+                </div>
+              </template>
+            </div>
+          </div>
+
+          <div class="mt-6 flex justify-end">
+            <button @click="closeMembersModal()"
+              class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm font-medium">
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Synchronize Modal -->
+    <div x-show="showSyncModal" x-cloak
+      class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
+      @click.self="closeSyncModal()">
+      <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Synchronize Data</h3>
+          <p class="text-sm text-gray-600 mb-4">
+            Synchronize local data with the SCIM client. This will update users and teams from the remote source.
+          </p>
+          <div class="mb-4">
+            <label class="flex items-center">
+              <input type="checkbox" x-model="syncDeleteOrphaned"
+                class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
+              <span class="ml-2 text-sm text-gray-700">Delete orphaned resources</span>
+            </label>
+            <p class="ml-6 text-xs text-gray-500 mt-1">
+              Remove resources that no longer exist in the source
+            </p>
+          </div>
+          <div class="mt-6 flex space-x-3">
+            <button type="button" @click="closeSyncModal()" :disabled="synchronizing"
+              :class="synchronizing ? 'opacity-50 cursor-not-allowed' : ''"
+              class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm font-medium">
+              Cancel
+            </button>
+            <button type="button" @click="synchronize()" :disabled="synchronizing"
+              :class="synchronizing ? 'opacity-50 cursor-not-allowed' : ''"
+              class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center justify-center">
+              <span x-show="synchronizing" class="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></span>
+              <span x-text="synchronizing ? 'Synchronizing...' : 'Synchronize'"></span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCIM Configuration Modal -->
+    <div x-show="showConfigModal" x-cloak
+      class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
+      @click.self="closeConfigModal()">
+      <div class="relative top-20 mx-auto p-5 border w-full max-w-4xl shadow-lg rounded-md bg-white m-4 max-h-[90vh] overflow-y-auto">
+        <div class="mt-3">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">SCIM Configuration</h3>
+
+          <!-- Service Provider Config -->
+          <div class="mb-6">
+            <h4 class="text-md font-semibold text-gray-800 mb-2">Service Provider Configuration</h4>
+            <div class="bg-gray-50 rounded-lg p-4">
+              <pre class="text-xs overflow-x-auto" x-text="serviceProviderConfig ? JSON.stringify(serviceProviderConfig, null, 2) : 'Loading...'"></pre>
+            </div>
+          </div>
+
+          <!-- Resource Types -->
+          <div class="mb-6">
+            <h4 class="text-md font-semibold text-gray-800 mb-2">Resource Types (<span x-text="resourceTypes.length"></span>)</h4>
+            <div class="bg-gray-50 rounded-lg p-4">
+              <pre class="text-xs overflow-x-auto" x-text="resourceTypes.length > 0 ? JSON.stringify(resourceTypes, null, 2) : 'Loading...'"></pre>
+            </div>
+          </div>
+
+          <!-- Schemas -->
+          <div class="mb-6">
+            <h4 class="text-md font-semibold text-gray-800 mb-2">Schemas (<span x-text="schemas.length"></span>)</h4>
+            <div class="bg-gray-50 rounded-lg p-4">
+              <pre class="text-xs overflow-x-auto" x-text="schemas.length > 0 ? JSON.stringify(schemas, null, 2) : 'Loading...'"></pre>
+            </div>
+          </div>
+
+          <div class="mt-6 flex justify-end">
+            <button @click="closeConfigModal()"
+              class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm font-medium">
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+
+</html>
+

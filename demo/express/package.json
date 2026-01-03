@@ -1,0 +1,21 @@
+{
+  "name": "tscim-demo-express",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start:dev": "tsx src/server.ts",
+    "start": "node --enable-source-maps dist/server.js",
+    "build": "tsc -p tsconfig.json",
+    "check": "tsc -b tsconfig.json"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "express-validator": "^7.3.1"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "tsx": "^4.17.0",
+    "typescript": "^5.6.2"
+  }
+}

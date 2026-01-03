@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.src.json",
+  "include": ["src"],
+  "exclude": ["demo"],
+  "compilerOptions": {
+    "types": ["node"],
+    "noEmit": false,
+    "tsBuildInfoFile": ".tsbuildinfo/build.tsbuildinfo",
+    "outDir": "build/esm",
+    "declarationDir": "build/dts",
+    "rootDir": "src",
+    "stripInternal": true
+  }
+}

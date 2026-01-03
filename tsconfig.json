@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {},
+  "extends": "./tsconfig.base.json",
+  "include": [],
+  "exclude": ["demo"],
+  "references": [
+    { "path": "tsconfig.src.json" },
+    { "path": "tsconfig.test.json" }
+  ]
+}

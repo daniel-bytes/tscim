@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+pnpm-lock.yaml
+
+# Build outputs
+build/
+dist/
+
+# Generated files
+*.js.map
+*.d.ts.map
+
+# Logs
+*.log
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+

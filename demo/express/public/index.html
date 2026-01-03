@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SCIM Admin UI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <style>
+    [x-cloak] {
+      display: none !important;
+    }
+  </style>
+</head>
+
+<body class="bg-gray-50">
+  <div x-data="scimApp()" x-init="loadUsers(); loadGroups(); loadConfig()" class="min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div class="flex justify-between items-center">
+          <h1 class="text-2xl font-bold text-gray-900">SCIM Admin UI</h1>
+          <button @click="openConfigModal()" class="text-sm text-gray-600 hover:text-gray-900 underline">
+            SCIM Configuration
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <!-- User Editor (Full Page) -->
+      <div x-show="viewMode === 'editUser'" x-cloak>
+        <div class="mb-6">
+          <button @click="closeUserEditor()" class="text-gray-600 hover:text-gray-900 mb-4 flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+            </svg>
+            Back to Users
+          </button>
+          <h2 class="text-2xl font-bold text-gray-900" x-text="editingUser ? 'Edit User' : 'Create User'"></h2>
+        </div>
+
+        <!-- Error Message -->
+        <div x-show="error" x-cloak
+          class="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded flex items-start justify-between">
+          <div class="flex-1">
+            <p class="font-medium">Error</p>
+            <p x-text="error"></p>
+          </div>
+          <button @click="error = null" class="ml-4 text-red-600 hover:text-red-800">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Success Message -->
+        <div x-show="success" x-cloak class="mb-4 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
+          <p x-text="success"></p>
+        </div>
+
+        <form @submit.prevent="saveUser()" class="space-y-6">
+          <!-- Basic Information -->
+          <div class="bg-white shadow rounded-lg p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Basic Information</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">User Name *</label>
+                <input type="text" x-model="userForm.userName" required
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Display Name</label>
+                <input type="text" x-model="userForm.displayName"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Nick Name</label>
+                <input type="text" x-model="userForm.nickName"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                <input type="text" x-model="userForm.title"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">User Type</label>
+                <input type="text" x-model="userForm.userType"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Profile URL</label>
+                <input type="url" x-model="userForm.profileUrl"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Preferred Language</label>
+                <input type="text" x-model="userForm.preferredLanguage" placeholder="e.g., en-US"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Locale</label>
+                <input type="text" x-model="userForm.locale" placeholder="e.g., en-US"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Timezone</label>
+                <input type="text" x-model="userForm.timezone" placeholder="e.g., America/Los_Angeles"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                <input type="password" x-model="userForm.password"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div class="flex items-center">
+                <input type="checkbox" x-model="userForm.active"
+                  class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" />
+                <label class="ml-2 block text-sm text-gray-700">Active</label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Name Components -->
+          <div class="bg-white shadow rounded-lg p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Name</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Formatted</label>
+                <input type="text" x-model="userForm.name.formatted"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Honorific Prefix</label>
+                <input type="text" x-model="userForm.name.honorificPrefix" placeholder="e.g., Dr., Mr., Ms."
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Given Name</label>
+                <input type="text" x-model="userForm.name.givenName"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Middle Name</label>
+                <input type="text" x-model="userForm.name.middleName"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Family Name</label>
+                <input type="text" x-model="userForm.name.familyName"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Honorific Suffix</label>
+                <input type="text" x-model="userForm.name.honorificSuffix" placeholder="e.g., Jr., Sr., III"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Emails -->
+          <div class="bg-white shadow rounded-lg p-6">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="text-lg font-medium text-gray-900">Email Addresses</h3>
+              <button type="button" @click="addEmail()"
+                class="text-sm bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded">
+                + Add Email
+              </button>
+            </div>
+            <div class="space-y-3">
+              <template x-for="(email, index) in userForm.emails" :key="index">
+                <div class="flex gap-2 items-end">
+                  <div class="flex-1">
+                    <input type="email" x-model="email.value" placeholder="Email address"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  </div>
+                  <div class="w-32">
+                    <input type="text" x-model="email.type" placeholder="Type (e.g., work)"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  </div>
+                  <div class="flex items-center">
+                    <input type="checkbox" x-model="email.primary" class="h-4 w-4 text-blue-600" />
+                    <label class="ml-1 text-sm text-gray-700">Primary</label>
+                  </div>
+                  <button type="button" @click="removeEmail(index)" class="text-red-600 hover:text-red-800 px-2">
+                    Remove
+                  </button>
+                </div>
+              </template>
+              <p x-show="userForm.emails.length === 0" class="text-sm text-gray-500">No email addresses added</p>
+            </div>
+          </div>
+
+          <!-- Phone Numbers -->
+          <div class="bg-white shadow rounded-lg p-6">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="text-lg font-medium text-gray-900">Phone Numbers</h3>
+              <button type="button" @click="addPhoneNumber()"
+                class="text-sm bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded">
+                + Add Phone
+              </button>
+            </div>
+            <div class="space-y-3">
+              <template x-for="(phone, index) in userForm.phoneNumbers" :key="index">
+                <div class="flex gap-2 items-end">
+                  <div class="flex-1">
+                    <input type="tel" x-model="phone.value" placeholder="Phone number"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  </div>
+                  <div class="w-32">
+                    <input type="text" x-model="phone.type" placeholder="Type (e.g., work)"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  </div>
+                  <div class="flex items-center">
+                    <input type="checkbox" x-model="phone.primary" class="h-4 w-4 text-blue-600" />
+                    <label class="ml-1 text-sm text-gray-700">Primary</label>
+                  </div>
+                  <button type="button" @click="removePhoneNumber(index)" class="text-red-600 hover:text-red-800 px-2">
+                    Remove
+                  </button>
+                </div>
+              </template>
+              <p x-show="userForm.phoneNumbers.length === 0" class="text-sm text-gray-500">No phone numbers added</p>
+            </div>
+          </div>
+
+          <!-- Addresses -->
+          <div class="bg-white shadow rounded-lg p-6">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="text-lg font-medium text-gray-900">Addresses</h3>
+              <button type="button" @click="addAddress()"
+                class="text-sm bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded">
+                + Add Address
+              </button>
+            </div>
+            <div class="space-y-4">
+              <template x-for="(address, index) in userForm.addresses" :key="index">
+                <div class="border border-gray-200 rounded-lg p-4 space-y-3">
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <input type="text" x-model="address.formatted" placeholder="Formatted address"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div>
+                      <input type="text" x-model="address.streetAddress" placeholder="Street address"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div>
+                      <input type="text" x-model="address.locality" placeholder="City/Locality"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div>
+                      <input type="text" x-model="address.region" placeholder="State/Region"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div>
+                      <input type="text" x-model="address.postalCode" placeholder="Postal code"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div>
+                      <input type="text" x-model="address.country" placeholder="Country"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div>
+                      <input type="text" x-model="address.type" placeholder="Type (e.g., work)"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div class="flex items-center">
+                      <input type="checkbox" x-model="address.primary" class="h-4 w-4 text-blue-600" />
+                      <label class="ml-1 text-sm text-gray-700">Primary</label>
+                    </div>
+                  </div>
+                  <button type="button" @click="removeAddress(index)" class="text-red-600 hover:text-red-800 text-sm">
+                    Remove Address
+                  </button>
+                </div>
+              </template>
+              <p x-show="userForm.addresses.length === 0" class="text-sm text-gray-500">No addresses added</p>
+            </div>
+          </div>
+
+          <!-- Roles -->
+          <div class="bg-white shadow rounded-lg p-6">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="text-lg font-medium text-gray-900">Roles</h3>
+              <button type="button" @click="addRole()"
+                class="text-sm bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded">
+                + Add Role
+              </button>
+            </div>
+            <div class="space-y-3">
+              <template x-for="(role, index) in userForm.roles" :key="index">
+                <div class="flex gap-2 items-end">
+                  <div class="flex-1">
+                    <input type="text" x-model="role.value" placeholder="Role value"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  </div>
+                  <div class="w-32">
+                    <input type="text" x-model="role.type" placeholder="Type"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  </div>
+                  <div class="w-32">
+                    <input type="text" x-model="role.display" placeholder="Display name"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  </div>
+                  <div class="flex items-center">
+                    <input type="checkbox" x-model="role.primary" class="h-4 w-4 text-blue-600" />
+                    <label class="ml-1 text-sm text-gray-700">Primary</label>
+                  </div>
+                  <button type="button" @click="removeRole(index)" class="text-red-600 hover:text-red-800 px-2">
+                    Remove
+                  </button>
+                </div>
+              </template>
+              <p x-show="userForm.roles.length === 0" class="text-sm text-gray-500">No roles added</p>
+            </div>
+          </div>
+
+          <!-- Entitlements -->
+          <div class="bg-white shadow rounded-lg p-6">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="text-lg font-medium text-gray-900">Entitlements</h3>
+              <button type="button" @click="addEntitlement()"
+                class="text-sm bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded">
+                + Add Entitlement
+              </button>
+            </div>
+            <div class="space-y-3">
+              <template x-for="(entitlement, index) in userForm.entitlements" :key="index">
+                <div class="flex gap-2 items-end">
+                  <div class="flex-1">
+                    <input type="text" x-model="entitlement.value" placeholder="Entitlement value"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  </div>
+                  <div class="w-32">
+                    <input type="text" x-model="entitlement.type" placeholder="Type"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  </div>
+                  <div class="w-32">
+                    <input type="text" x-model="entitlement.display" placeholder="Display name"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  </div>
+                  <div class="flex items-center">
+                    <input type="checkbox" x-model="entitlement.primary" class="h-4 w-4 text-blue-600" />
+                    <label class="ml-1 text-sm text-gray-700">Primary</label>
+                  </div>
+                  <button type="button" @click="removeEntitlement(index)" class="text-red-600 hover:text-red-800 px-2">
+                    Remove
+                  </button>
+                </div>
+              </template>
+              <p x-show="userForm.entitlements.length === 0" class="text-sm text-gray-500">No entitlements added</p>
+            </div>
+          </div>
+
+          <!-- Groups -->
+          <div class="bg-white shadow rounded-lg p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Groups</h3>
+            <div x-show="editingUser" class="mb-4">
+              <div class="flex gap-2 items-end mb-4">
+                <div class="flex-1">
+                  <select x-model="selectedGroupToAdd"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Select a group...</option>
+                    <template x-for="group in availableGroupsForUser" :key="group.id">
+                      <option :value="group.id" x-text="group.displayName"></option>
+                    </template>
+                  </select>
+                </div>
+                <button type="button" @click="addUserToGroup()" :disabled="!selectedGroupToAdd"
+                  :class="!selectedGroupToAdd ? 'opacity-50 cursor-not-allowed' : ''"
+                  class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+                  Add to Group
+                </button>
+              </div>
+              <div x-show="editingUser?.groups && editingUser.groups.length > 0" class="space-y-2">
+                <template x-for="group in editingUser.groups" :key="group.value">
+                  <div class="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-md">
+                    <div>
+                      <p class="text-sm font-medium text-gray-900" x-text="group.display || group.value"></p>
+                      <p class="text-xs text-gray-500" x-text="group.value"></p>
+                    </div>
+                    <button type="button" @click="removeUserFromGroup(group.value)"
+                      class="text-red-600 hover:text-red-800 text-sm font-medium">
+                      Remove
+                    </button>
+                  </div>
+                </template>
+              </div>
+              <p x-show="!editingUser?.groups || editingUser.groups.length === 0" class="text-sm text-gray-500">
+                User is not a member of any groups
+              </p>
+            </div>
+            <p x-show="!editingUser" class="text-sm text-gray-500">Save the user first to manage group memberships</p>
+          </div>
+
+          <!-- Form Actions -->
+          <div class="flex justify-end space-x-3">
+            <button type="button" @click="closeUserEditor()"
+              class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2 rounded-md text-sm font-medium">
+              Cancel
+            </button>
+            <button type="submit"
+              class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md text-sm font-medium">
+              Save User
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- List Views (Users/Groups) -->
+      <div x-show="viewMode === 'list'" x-cloak>
+        <!-- Tabs -->
+        <div class="border-b border-gray-200 mb-6">
+          <nav class="-mb-px flex space-x-8">
+            <button @click="activeTab = 'users'; userPage = 1; userSearchQuery = ''; loadUsers()"
+              :class="activeTab === 'users' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+              class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+              Users
+            </button>
+            <button @click="activeTab = 'groups'; groupPage = 1; groupSearchQuery = ''; loadGroups()"
+              :class="activeTab === 'groups' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+              class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+              Groups
+            </button>
+          </nav>
+        </div>
+
+        <!-- Error Message -->
+        <div x-show="error" x-cloak
+          class="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded flex items-start justify-between">
+          <div class="flex-1">
+            <p class="font-medium">Error</p>
+            <p x-text="error"></p>
+          </div>
+          <button @click="error = null" class="ml-4 text-red-600 hover:text-red-800">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Success Message -->
+        <div x-show="success" x-cloak class="mb-4 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
+          <p x-text="success"></p>
+        </div>
+
+        <!-- Users Tab -->
+        <div x-show="activeTab === 'users'" x-cloak>
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-semibold text-gray-900">Users</h2>
+            <button @click="openCreateUser()"
+              class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+              + Create User
+            </button>
+          </div>
+
+          <!-- Search/Filter -->
+          <div class="mb-4">
+            <form @submit.prevent="userPage = 1; loadUsers()" class="flex space-x-2">
+              <input type="text" x-model="userSearchQuery" placeholder="Search users (SCIM filter, e.g., userName co \"
+                john\")..."
+                class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <button type="submit"
+                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+                Search
+              </button>
+              <button type="button" @click="userSearchQuery = ''; userPage = 1; loadUsers()"
+                class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm font-medium">
+                Clear
+              </button>
+            </form>
+            <p class="mt-2 text-xs text-gray-500">
+              Try: <code class="bg-gray-100 px-1 rounded">userName co "john"</code> or
+              <code class="bg-gray-100 px-1 rounded">(userName sw "j" or displayName co "john")</code>
+            </p>
+          </div>
+
+          <!-- Users List -->
+          <div x-show="loadingUsers" class="text-center py-8">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <p class="mt-2 text-gray-600">Loading users...</p>
+          </div>
+
+          <div x-show="!loadingUsers && users.length === 0" class="text-center py-8 text-gray-500">
+            <span x-show="userSearchQuery">No users match your filter.</span>
+            <span x-show="!userSearchQuery">No users found. Create your first user!</span>
+          </div>
+
+          <div x-show="!loadingUsers && users.length > 0" class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <template x-for="user in users" :key="user.id">
+              <div class="bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow">
+                <div class="flex justify-between items-start mb-2">
+                  <div>
+                    <h3 class="font-semibold text-gray-900" x-text="user.displayName || user.userName"></h3>
+                    <p class="text-sm text-gray-500" x-text="user.userName"></p>
+                  </div>
+                  <span :class="user.active !== false ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'"
+                    class="px-2 py-1 text-xs font-medium rounded"
+                    x-text="user.active !== false ? 'Active' : 'Inactive'"></span>
+                </div>
+                <div class="mt-2 space-y-1">
+                  <p class="text-sm text-gray-600" x-show="user.name?.givenName || user.name?.familyName">
+                    <span x-text="user.name?.givenName"></span> <span x-text="user.name?.familyName"></span>
+                  </p>
+                  <p class="text-sm text-gray-600" x-show="user.emails && user.emails.length > 0">
+                    <span x-text="user.emails[0].value"></span>
+                  </p>
+                </div>
+                <div class="mt-4 flex space-x-2">
+                  <button @click="openEditUser(user)"
+                    class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded text-sm font-medium">
+                    Edit
+                  </button>
+                  <button @click="deleteUser(user.id)"
+                    class="flex-1 bg-red-100 hover:bg-red-200 text-red-700 px-3 py-2 rounded text-sm font-medium">
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </template>
+          </div>
+
+          <!-- Pagination for Users -->
+          <div x-show="!loadingUsers && users.length > 0" class="mt-6 flex items-center justify-between">
+            <div class="text-sm text-gray-700">
+              Showing <span x-text="userPagination.startIndex || 1"></span> to
+              <span x-text="(userPagination.startIndex || 1) + (users.length - 1)"></span> of
+              <span x-text="userTotalResults"></span> users
+            </div>
+            <div class="flex space-x-2">
+              <button @click="userPage = Math.max(1, userPage - 1); loadUsers()" :disabled="userPage === 1"
+                :class="userPage === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-200'"
+                class="px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white">
+                Previous
+              </button>
+              <button @click="userPage = userPage + 1; loadUsers()"
+                :disabled="(userPagination.startIndex || 1) + users.length > userTotalResults"
+                :class="(userPagination.startIndex || 1) + users.length > userTotalResults ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-200'"
+                class="px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white">
+                Next
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Groups Tab -->
+        <div x-show="activeTab === 'groups'" x-cloak>
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-semibold text-gray-900">Groups</h2>
+            <button @click="openCreateGroupModal()"
+              class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+              + Create Group
+            </button>
+          </div>
+
+          <!-- Search/Filter -->
+          <div class="mb-4">
+            <form @submit.prevent="groupPage = 1; loadGroups()" class="flex space-x-2">
+              <input type="text" x-model="groupSearchQuery"
+                placeholder="Search groups (SCIM filter, e.g., displayName co \" admin\")..."
+                class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <button type="submit"
+                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+                Search
+              </button>
+              <button type="button" @click="groupSearchQuery = ''; groupPage = 1; loadGroups()"
+                class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm font-medium">
+                Clear
+              </button>
+            </form>
+            <p class="mt-2 text-xs text-gray-500">
+              Try: <code class="bg-gray-100 px-1 rounded">displayName co "admin"</code> or
+              <code class="bg-gray-100 px-1 rounded">displayName sw "team"</code>
+            </p>
+          </div>
+
+          <!-- Groups List -->
+          <div x-show="loadingGroups" class="text-center py-8">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <p class="mt-2 text-gray-600">Loading groups...</p>
+          </div>
+
+          <div x-show="!loadingGroups && groups.length === 0" class="text-center py-8 text-gray-500">
+            <span x-show="groupSearchQuery">No groups match your filter.</span>
+            <span x-show="!groupSearchQuery">No groups found. Create your first group!</span>
+          </div>
+
+          <div x-show="!loadingGroups && groups.length > 0" class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <template x-for="group in groups" :key="group.id">
+              <div class="bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow">
+                <div class="flex justify-between items-start mb-2">
+                  <h3 class="font-semibold text-gray-900" x-text="group.displayName"></h3>
+                </div>
+                <div class="mt-2">
+                  <p class="text-sm text-gray-600">
+                    <span x-text="group.members?.length || 0"></span> member(s)
+                  </p>
+                </div>
+                <div class="mt-4 flex space-x-2">
+                  <button @click="openEditGroupModal(group)"
+                    class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded text-sm font-medium">
+                    Edit
+                  </button>
+                  <button @click="openManageMembersModal(group)"
+                    class="flex-1 bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-2 rounded text-sm font-medium">
+                    Members
+                  </button>
+                  <button @click="deleteGroup(group.id)"
+                    class="flex-1 bg-red-100 hover:bg-red-200 text-red-700 px-3 py-2 rounded text-sm font-medium">
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </template>
+          </div>
+
+          <!-- Pagination for Groups -->
+          <div x-show="!loadingGroups && groups.length > 0" class="mt-6 flex items-center justify-between">
+            <div class="text-sm text-gray-700">
+              Showing <span x-text="groupPagination.startIndex || 1"></span> to
+              <span x-text="(groupPagination.startIndex || 1) + (groups.length - 1)"></span> of
+              <span x-text="groupTotalResults"></span> groups
+            </div>
+            <div class="flex space-x-2">
+              <button @click="groupPage = Math.max(1, groupPage - 1); loadGroups()" :disabled="groupPage === 1"
+                :class="groupPage === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-200'"
+                class="px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white">
+                Previous
+              </button>
+              <button @click="groupPage = groupPage + 1; loadGroups()"
+                :disabled="(groupPagination.startIndex || 1) + groups.length > groupTotalResults"
+                :class="(groupPagination.startIndex || 1) + groups.length > groupTotalResults ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-200'"
+                class="px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white">
+                Next
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+
+    <!-- Create/Edit Group Modal -->
+    <div x-show="showGroupModal" x-cloak
+      class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
+      @click.self="closeGroupModal()">
+      <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+          <h3 class="text-lg font-medium text-gray-900 mb-4" x-text="editingGroup ? 'Edit Group' : 'Create Group'"></h3>
+          <form @submit.prevent="saveGroup()">
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Display Name *</label>
+                <input type="text" x-model="groupForm.displayName" required
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+            </div>
+            <div class="mt-6 flex space-x-3">
+              <button type="button" @click="closeGroupModal()"
+                class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm font-medium">
+                Cancel
+              </button>
+              <button type="submit"
+                class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+                Save
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Manage Members Modal -->
+    <div x-show="showMembersModal" x-cloak
+      class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
+      @click.self="closeMembersModal()">
+      <div class="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white m-4">
+        <div class="mt-3">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">
+            Manage Members: <span x-text="selectedGroup?.displayName"></span>
+          </h3>
+
+          <!-- Add Member Section -->
+          <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+            <h4 class="text-sm font-medium text-gray-700 mb-2">Add Member</h4>
+            <div class="flex space-x-2">
+              <select x-model="selectedUserToAdd"
+                class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">Select a user...</option>
+                <template x-for="user in availableUsers" :key="user.id">
+                  <option :value="user.id" x-text="user.displayName || user.userName"></option>
+                </template>
+              </select>
+              <button @click="addMemberToGroup()" :disabled="!selectedUserToAdd"
+                :class="!selectedUserToAdd ? 'opacity-50 cursor-not-allowed' : ''"
+                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+                Add
+              </button>
+            </div>
+          </div>
+
+          <!-- Current Members List -->
+          <div>
+            <h4 class="text-sm font-medium text-gray-700 mb-2">Current Members (<span
+                x-text="selectedGroup?.members?.length || 0"></span>)</h4>
+            <div x-show="!selectedGroup?.members || selectedGroup.members.length === 0"
+              class="text-center py-4 text-gray-500 text-sm">
+              No members in this group.
+            </div>
+            <div x-show="selectedGroup?.members && selectedGroup.members.length > 0" class="space-y-2">
+              <template x-for="member in selectedGroup.members" :key="member.value">
+                <div class="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-md">
+                  <div>
+                    <p class="text-sm font-medium text-gray-900" x-text="getMemberDisplayName(member)"></p>
+                    <p class="text-xs text-gray-500" x-text="member.value"></p>
+                  </div>
+                  <button @click="removeMemberFromGroup(member.value)"
+                    class="text-red-600 hover:text-red-800 text-sm font-medium">
+                    Remove
+                  </button>
+                </div>
+              </template>
+            </div>
+          </div>
+
+          <div class="mt-6 flex justify-end">
+            <button @click="closeMembersModal()"
+              class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm font-medium">
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCIM Configuration Modal -->
+    <div x-show="showConfigModal" x-cloak
+      class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
+      @click.self="closeConfigModal()">
+      <div class="relative top-20 mx-auto p-5 border w-full max-w-4xl shadow-lg rounded-md bg-white m-4 max-h-[90vh] overflow-y-auto">
+        <div class="mt-3">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">SCIM Configuration</h3>
+
+          <!-- Service Provider Config -->
+          <div class="mb-6">
+            <h4 class="text-md font-semibold text-gray-800 mb-2">Service Provider Configuration</h4>
+            <div class="bg-gray-50 rounded-lg p-4">
+              <pre class="text-xs overflow-x-auto" x-text="serviceProviderConfig ? JSON.stringify(serviceProviderConfig, null, 2) : 'Loading...'"></pre>
+            </div>
+          </div>
+
+          <!-- Resource Types -->
+          <div class="mb-6">
+            <h4 class="text-md font-semibold text-gray-800 mb-2">Resource Types (<span x-text="resourceTypes.length"></span>)</h4>
+            <div class="bg-gray-50 rounded-lg p-4">
+              <pre class="text-xs overflow-x-auto" x-text="resourceTypes.length > 0 ? JSON.stringify(resourceTypes, null, 2) : 'Loading...'"></pre>
+            </div>
+          </div>
+
+          <!-- Schemas -->
+          <div class="mb-6">
+            <h4 class="text-md font-semibold text-gray-800 mb-2">Schemas (<span x-text="schemas.length"></span>)</h4>
+            <div class="bg-gray-50 rounded-lg p-4">
+              <pre class="text-xs overflow-x-auto" x-text="schemas.length > 0 ? JSON.stringify(schemas, null, 2) : 'Loading...'"></pre>
+            </div>
+          </div>
+
+          <div class="mt-6 flex justify-end">
+            <button @click="closeConfigModal()"
+              class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm font-medium">
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,802 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`parseFilter > Attribute Expressions > should parse a simple equality expression 1`] = `
+{
+  "attrPath": {
+    "attrName": "userName",
+  },
+  "operator": "eq",
+  "type": "attribute",
+  "value": "john.doe",
+}
+`;
+
+exports[`parseFilter > Attribute Expressions > should parse attribute with URI 1`] = `
+{
+  "attrPath": {
+    "attrName": "userName",
+    "uri": "urn:ietf:params:scim:schemas:core:2.0:User",
+  },
+  "operator": "eq",
+  "type": "attribute",
+  "value": "test",
+}
+`;
+
+exports[`parseFilter > Attribute Expressions > should parse attribute with URI and sub-attribute 1`] = `
+{
+  "attrPath": {
+    "attrName": "name",
+    "subAttr": "familyName",
+    "uri": "urn:ietf:params:scim:schemas:core:2.0:User",
+  },
+  "operator": "eq",
+  "type": "attribute",
+  "value": "Smith",
+}
+`;
+
+exports[`parseFilter > Attribute Expressions > should parse attribute with sub-attribute 1`] = `
+{
+  "attrPath": {
+    "attrName": "name",
+    "subAttr": "familyName",
+  },
+  "operator": "eq",
+  "type": "attribute",
+  "value": "Smith",
+}
+`;
+
+exports[`parseFilter > Attribute Expressions > should parse present operator (pr) 1`] = `
+{
+  "attrPath": {
+    "attrName": "userName",
+  },
+  "present": true,
+  "type": "attribute",
+}
+`;
+
+exports[`parseFilter > Complex Examples > should parse NOT expression wrapping a value path 1`] = `
+{
+  "filter": {
+    "attrPath": {
+      "attrName": "emails",
+    },
+    "type": "valuePath",
+    "valFilter": {
+      "attrPath": {
+        "attrName": "type",
+      },
+      "operator": "eq",
+      "type": "attribute",
+      "value": "work",
+    },
+  },
+  "type": "not",
+}
+`;
+
+exports[`parseFilter > Complex Examples > should parse NOT of value path combined with regular attributes 1`] = `
+{
+  "left": {
+    "filter": {
+      "attrPath": {
+        "attrName": "emails",
+      },
+      "type": "valuePath",
+      "valFilter": {
+        "attrPath": {
+          "attrName": "type",
+        },
+        "operator": "eq",
+        "type": "attribute",
+        "value": "work",
+      },
+    },
+    "type": "not",
+  },
+  "operator": "and",
+  "right": {
+    "attrPath": {
+      "attrName": "active",
+    },
+    "operator": "eq",
+    "type": "attribute",
+    "value": true,
+  },
+  "type": "logical",
+}
+`;
+
+exports[`parseFilter > Complex Examples > should parse deeply nested expressions with complex whitespace 1`] = `
+{
+  "left": {
+    "left": {
+      "attrPath": {
+        "attrName": "userName",
+      },
+      "operator": "sw",
+      "type": "attribute",
+      "value": "admin",
+    },
+    "operator": "and",
+    "right": {
+      "filter": {
+        "attrPath": {
+          "attrName": "active",
+        },
+        "operator": "eq",
+        "type": "attribute",
+        "value": false,
+      },
+      "type": "not",
+    },
+    "type": "logical",
+  },
+  "operator": "or",
+  "right": {
+    "left": {
+      "attrPath": {
+        "attrName": "emails",
+      },
+      "type": "valuePath",
+      "valFilter": {
+        "attrPath": {
+          "attrName": "type",
+        },
+        "operator": "eq",
+        "type": "attribute",
+        "value": "work",
+      },
+    },
+    "operator": "and",
+    "right": {
+      "attrPath": {
+        "attrName": "roles",
+      },
+      "type": "valuePath",
+      "valFilter": {
+        "left": {
+          "attrPath": {
+            "attrName": "value",
+          },
+          "operator": "ne",
+          "type": "attribute",
+          "value": "admin",
+        },
+        "operator": "or",
+        "right": {
+          "left": {
+            "filter": {
+              "attrPath": {
+                "attrName": "type",
+              },
+              "operator": "ew",
+              "type": "attribute",
+              "value": "user",
+            },
+            "type": "not",
+          },
+          "operator": "and",
+          "right": {
+            "left": {
+              "attrPath": {
+                "attrName": "primary",
+              },
+              "operator": "eq",
+              "type": "attribute",
+              "value": true,
+            },
+            "operator": "or",
+            "right": {
+              "filter": {
+                "attrPath": {
+                  "attrName": "display",
+                },
+                "present": true,
+                "type": "attribute",
+              },
+              "type": "not",
+            },
+            "type": "logical",
+          },
+          "type": "logical",
+        },
+        "type": "logical",
+      },
+    },
+    "type": "logical",
+  },
+  "type": "logical",
+}
+`;
+
+exports[`parseFilter > Complex Examples > should parse expression with explicit precedence grouping (A and B) or C 1`] = `
+{
+  "left": {
+    "left": {
+      "attrPath": {
+        "attrName": "userName",
+      },
+      "operator": "eq",
+      "type": "attribute",
+      "value": "admin",
+    },
+    "operator": "and",
+    "right": {
+      "attrPath": {
+        "attrName": "active",
+      },
+      "operator": "eq",
+      "type": "attribute",
+      "value": true,
+    },
+    "type": "logical",
+  },
+  "operator": "or",
+  "right": {
+    "attrPath": {
+      "attrName": "role",
+    },
+    "operator": "eq",
+    "type": "attribute",
+    "value": "user",
+  },
+  "type": "logical",
+}
+`;
+
+exports[`parseFilter > Complex Examples > should parse expression with explicit precedence grouping A and (B or C) 1`] = `
+{
+  "left": {
+    "attrPath": {
+      "attrName": "userName",
+    },
+    "operator": "eq",
+    "type": "attribute",
+    "value": "admin",
+  },
+  "operator": "and",
+  "right": {
+    "left": {
+      "attrPath": {
+        "attrName": "active",
+      },
+      "operator": "eq",
+      "type": "attribute",
+      "value": true,
+    },
+    "operator": "or",
+    "right": {
+      "attrPath": {
+        "attrName": "role",
+      },
+      "operator": "eq",
+      "type": "attribute",
+      "value": "user",
+    },
+    "type": "logical",
+  },
+  "type": "logical",
+}
+`;
+
+exports[`parseFilter > Complex Examples > should parse multiple NOT expressions in a logical expression 1`] = `
+{
+  "left": {
+    "filter": {
+      "attrPath": {
+        "attrName": "userName",
+      },
+      "operator": "eq",
+      "type": "attribute",
+      "value": "admin",
+    },
+    "type": "not",
+  },
+  "operator": "and",
+  "right": {
+    "filter": {
+      "attrPath": {
+        "attrName": "active",
+      },
+      "operator": "eq",
+      "type": "attribute",
+      "value": false,
+    },
+    "type": "not",
+  },
+  "type": "logical",
+}
+`;
+
+exports[`parseFilter > Complex Examples > should parse multiple value paths combined with logical operators 1`] = `
+{
+  "left": {
+    "attrPath": {
+      "attrName": "emails",
+    },
+    "type": "valuePath",
+    "valFilter": {
+      "attrPath": {
+        "attrName": "type",
+      },
+      "operator": "eq",
+      "type": "attribute",
+      "value": "work",
+    },
+  },
+  "operator": "and",
+  "right": {
+    "attrPath": {
+      "attrName": "roles",
+    },
+    "type": "valuePath",
+    "valFilter": {
+      "attrPath": {
+        "attrName": "value",
+      },
+      "operator": "eq",
+      "type": "attribute",
+      "value": "admin",
+    },
+  },
+  "type": "logical",
+}
+`;
+
+exports[`parseFilter > Complex Examples > should parse parenthesized value path for precedence grouping 1`] = `
+{
+  "left": {
+    "attrPath": {
+      "attrName": "emails",
+    },
+    "type": "valuePath",
+    "valFilter": {
+      "attrPath": {
+        "attrName": "type",
+      },
+      "operator": "eq",
+      "type": "attribute",
+      "value": "work",
+    },
+  },
+  "operator": "and",
+  "right": {
+    "attrPath": {
+      "attrName": "active",
+    },
+    "operator": "eq",
+    "type": "attribute",
+    "value": true,
+  },
+  "type": "logical",
+}
+`;
+
+exports[`parseFilter > Complex Examples > should parse value path combined with regular attribute expression 1`] = `
+{
+  "left": {
+    "attrPath": {
+      "attrName": "emails",
+    },
+    "type": "valuePath",
+    "valFilter": {
+      "attrPath": {
+        "attrName": "type",
+      },
+      "operator": "eq",
+      "type": "attribute",
+      "value": "work",
+    },
+  },
+  "operator": "and",
+  "right": {
+    "attrPath": {
+      "attrName": "active",
+    },
+    "operator": "eq",
+    "type": "attribute",
+    "value": true,
+  },
+  "type": "logical",
+}
+`;
+
+exports[`parseFilter > Logical Expressions > should parse AND expression 1`] = `
+{
+  "left": {
+    "attrPath": {
+      "attrName": "userName",
+    },
+    "operator": "eq",
+    "type": "attribute",
+    "value": "john",
+  },
+  "operator": "and",
+  "right": {
+    "attrPath": {
+      "attrName": "active",
+    },
+    "operator": "eq",
+    "type": "attribute",
+    "value": true,
+  },
+  "type": "logical",
+}
+`;
+
+exports[`parseFilter > Logical Expressions > should parse OR expression 1`] = `
+{
+  "left": {
+    "attrPath": {
+      "attrName": "userName",
+    },
+    "operator": "eq",
+    "type": "attribute",
+    "value": "john",
+  },
+  "operator": "or",
+  "right": {
+    "attrPath": {
+      "attrName": "userName",
+    },
+    "operator": "eq",
+    "type": "attribute",
+    "value": "jane",
+  },
+  "type": "logical",
+}
+`;
+
+exports[`parseFilter > Logical Expressions > should parse complex nested logical expressions 1`] = `
+{
+  "left": {
+    "attrPath": {
+      "attrName": "userName",
+    },
+    "operator": "eq",
+    "type": "attribute",
+    "value": "john",
+  },
+  "operator": "and",
+  "right": {
+    "left": {
+      "attrPath": {
+        "attrName": "active",
+      },
+      "operator": "eq",
+      "type": "attribute",
+      "value": true,
+    },
+    "operator": "or",
+    "right": {
+      "attrPath": {
+        "attrName": "role",
+      },
+      "operator": "eq",
+      "type": "attribute",
+      "value": "admin",
+    },
+    "type": "logical",
+  },
+  "type": "logical",
+}
+`;
+
+exports[`parseFilter > Not Expressions > should parse nested not expressions 1`] = `
+{
+  "filter": {
+    "left": {
+      "attrPath": {
+        "attrName": "userName",
+      },
+      "operator": "eq",
+      "type": "attribute",
+      "value": "admin",
+    },
+    "operator": "and",
+    "right": {
+      "attrPath": {
+        "attrName": "active",
+      },
+      "operator": "eq",
+      "type": "attribute",
+      "value": false,
+    },
+    "type": "logical",
+  },
+  "type": "not",
+}
+`;
+
+exports[`parseFilter > Not Expressions > should parse not expression with parentheses 1`] = `
+{
+  "filter": {
+    "attrPath": {
+      "attrName": "userName",
+    },
+    "operator": "eq",
+    "type": "attribute",
+    "value": "admin",
+  },
+  "type": "not",
+}
+`;
+
+exports[`parseFilter > Not Expressions > should parse parenthesized expression as precedence grouping (not NOT expression) 1`] = `
+{
+  "attrPath": {
+    "attrName": "userName",
+  },
+  "operator": "eq",
+  "type": "attribute",
+  "value": "admin",
+}
+`;
+
+exports[`parseFilter > RFC 7644 Examples > should parse RFC 7644 example: emails[type eq "work" and value co "@example.com"] 1`] = `
+{
+  "attrPath": {
+    "attrName": "emails",
+  },
+  "type": "valuePath",
+  "valFilter": {
+    "left": {
+      "attrPath": {
+        "attrName": "type",
+      },
+      "operator": "eq",
+      "type": "attribute",
+      "value": "work",
+    },
+    "operator": "and",
+    "right": {
+      "attrPath": {
+        "attrName": "value",
+      },
+      "operator": "co",
+      "type": "attribute",
+      "value": "@example.com",
+    },
+    "type": "logical",
+  },
+}
+`;
+
+exports[`parseFilter > RFC 7644 Examples > should parse RFC 7644 example: meta.lastModified gt "2011-05-13T04:42:34Z" 1`] = `
+{
+  "attrPath": {
+    "attrName": "meta",
+    "subAttr": "lastModified",
+  },
+  "operator": "gt",
+  "type": "attribute",
+  "value": "2011-05-13T04:42:34Z",
+}
+`;
+
+exports[`parseFilter > RFC 7644 Examples > should parse RFC 7644 example: name.familyName co "O'Malley" 1`] = `
+{
+  "attrPath": {
+    "attrName": "name",
+    "subAttr": "familyName",
+  },
+  "operator": "co",
+  "type": "attribute",
+  "value": "O'Malley",
+}
+`;
+
+exports[`parseFilter > RFC 7644 Examples > should parse RFC 7644 example: title pr 1`] = `
+{
+  "attrPath": {
+    "attrName": "title",
+  },
+  "present": true,
+  "type": "attribute",
+}
+`;
+
+exports[`parseFilter > RFC 7644 Examples > should parse RFC 7644 example: title pr and userType eq "Employee" 1`] = `
+{
+  "left": {
+    "attrPath": {
+      "attrName": "title",
+    },
+    "present": true,
+    "type": "attribute",
+  },
+  "operator": "and",
+  "right": {
+    "attrPath": {
+      "attrName": "userType",
+    },
+    "operator": "eq",
+    "type": "attribute",
+    "value": "Employee",
+  },
+  "type": "logical",
+}
+`;
+
+exports[`parseFilter > RFC 7644 Examples > should parse RFC 7644 example: userName eq "bjensen" 1`] = `
+{
+  "attrPath": {
+    "attrName": "userName",
+  },
+  "operator": "eq",
+  "type": "attribute",
+  "value": "bjensen",
+}
+`;
+
+exports[`parseFilter > RFC 7644 Examples > should parse RFC 7644 example: userName sw "J" 1`] = `
+{
+  "attrPath": {
+    "attrName": "userName",
+  },
+  "operator": "sw",
+  "type": "attribute",
+  "value": "J",
+}
+`;
+
+exports[`parseFilter > Value Paths > should parse nested value path with logical expression containing not 1`] = `
+{
+  "attrPath": {
+    "attrName": "attr1",
+  },
+  "type": "valuePath",
+  "valFilter": {
+    "left": {
+      "attrPath": {
+        "attrName": "attr2",
+      },
+      "type": "valuePath",
+      "valFilter": {
+        "attrPath": {
+          "attrName": "subAttr",
+        },
+        "present": true,
+        "type": "attribute",
+      },
+    },
+    "operator": "or",
+    "right": {
+      "filter": {
+        "attrPath": {
+          "attrName": "attr3",
+        },
+        "present": true,
+        "type": "attribute",
+      },
+      "type": "not",
+    },
+    "type": "logical",
+  },
+}
+`;
+
+exports[`parseFilter > Value Paths > should parse value path with attribute expression 1`] = `
+{
+  "attrPath": {
+    "attrName": "emails",
+  },
+  "type": "valuePath",
+  "valFilter": {
+    "attrPath": {
+      "attrName": "type",
+    },
+    "operator": "eq",
+    "type": "attribute",
+    "value": "work",
+  },
+}
+`;
+
+exports[`parseFilter > Value Paths > should parse value path with logical expression 1`] = `
+{
+  "attrPath": {
+    "attrName": "emails",
+  },
+  "type": "valuePath",
+  "valFilter": {
+    "left": {
+      "attrPath": {
+        "attrName": "type",
+      },
+      "operator": "eq",
+      "type": "attribute",
+      "value": "work",
+    },
+    "operator": "and",
+    "right": {
+      "attrPath": {
+        "attrName": "primary",
+      },
+      "operator": "eq",
+      "type": "attribute",
+      "value": true,
+    },
+    "type": "logical",
+  },
+}
+`;
+
+exports[`parseFilter > Value Paths > should parse value path with not expression 1`] = `
+{
+  "attrPath": {
+    "attrName": "emails",
+  },
+  "type": "valuePath",
+  "valFilter": {
+    "filter": {
+      "attrPath": {
+        "attrName": "type",
+      },
+      "operator": "eq",
+      "type": "attribute",
+      "value": "work",
+    },
+    "type": "not",
+  },
+}
+`;
+
+exports[`parseFilter > Value Types > should parse boolean false 1`] = `
+{
+  "attrPath": {
+    "attrName": "active",
+  },
+  "operator": "eq",
+  "type": "attribute",
+  "value": false,
+}
+`;
+
+exports[`parseFilter > Value Types > should parse boolean true 1`] = `
+{
+  "attrPath": {
+    "attrName": "active",
+  },
+  "operator": "eq",
+  "type": "attribute",
+  "value": true,
+}
+`;
+
+exports[`parseFilter > Value Types > should parse null 1`] = `
+{
+  "attrPath": {
+    "attrName": "manager",
+  },
+  "operator": "eq",
+  "type": "attribute",
+  "value": null,
+}
+`;
+
+exports[`parseFilter > Value Types > should parse number values 1`] = `
+{
+  "attrPath": {
+    "attrName": "age",
+  },
+  "operator": "eq",
+  "type": "attribute",
+  "value": 25,
+}
+`;
+
+exports[`parseFilter > Value Types > should parse string values 1`] = `
+{
+  "attrPath": {
+    "attrName": "userName",
+  },
+  "operator": "eq",
+  "type": "attribute",
+  "value": "test@example.com",
+}
+`;
