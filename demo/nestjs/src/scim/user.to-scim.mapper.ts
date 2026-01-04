@@ -73,7 +73,7 @@ function toScimEmails(user: User): Email[] {
 }
 
 function toScimPhoneNumbers(user: User): PhoneNumber[] | undefined {
-  if (!user.phone) {
+  if (!user.phone || !user.phone.primary) {
     return undefined;
   }
   const phoneNumbers: PhoneNumber[] = [

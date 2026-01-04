@@ -37,11 +37,9 @@ tscim includes some helper functions showing how to synchronize data across SCIM
 // TODO
 ```
 
-## Architecture
-
-<TODO>
-
 ## Demo Applications
+
+tscim does not directly include any utilities for adding SCIM API routes to your application, as there are any number of existing or home-grown HTTP frameworks.  Instead we include a set of demo applications in the repository which show what is involved in integrating into your own application.
 
 Two demo applications are included in tscim, to both show examples of how to wire up tscim to multiple frameworks as well as how to synchronize data across SCIM applications.  It is recommended to run both applications together to see an example of the SCIM protocol in use between a client and server application.
 
@@ -55,10 +53,73 @@ The application in demo/express shows how to wrap the tscim services to offer th
 
 The Nest.js application in demo/nest is a more complicated example.  The Nest application shows how to integrate tscim into an application with its own domain model backed by real storage (SQLite and Loki).  The Nest application also shows an example how to synchronize data, using the Express application as the SCIM server.
 
+## Architecture
+
+The tscim library is broken into 3 main sections:
+- `scim`: The core SCIM API types (API, models, filter and patch DSLs, errors, etc)
+- `app`: The application layer types (HTTP clients, SCIM adapters, services, etc)
+- `parser`: A simple general purpose combinator parser, primarily used by the SCIM filtering DSL. Heavily inspired by Claudiu Ivan's [A Principled Approach to Querying Data
+](https://www.claudiu-ivan.com/writing/search-dsl/) blog.
+
+Every object in the SCIM data model exists as an interface.
+
+The SCIM API is modeled as a set of nested interfaces:
+- `ScimApi`: the root interface
+  - `ResourcesApi`: the parent interface for interacting with SCIM resources (Users and Groups)
+    - `ResourceApi<T extends Resource>`: a generic interface for managing a resource type
+    - `BulkOperationsApi`: interface for generic bulk management of multiple resources
+  - `ConfigApi`: the parent interface for interacting with the SCIM configuration endpoints
+    - `ResourceTypeApi`: the resource types configuration API interface
+    - `ServiceProvicer`: the service providers configuration API interface
+    - `Schemas`: the schemas configuration API
+
+To implement a SCIM server on top of your data model you will create a new instance of the `ScimService` class, as well as implement your own subclass of `ResourceAdapter` for Users and optionally Groups.
+
+To interace with a remote SCIM service, you can create an instance of the `ScimClient` class.
+
+Note that both the `ScimService` and `ScimClient` implement the same `ScimApi` interface.
+
 ## Contributing
 
-<TODO>
+The `pnpm` package manager is used for development, as well as Vitest for the main unit tests.
+
+### Building
+
+To build the library, run the `pnpm build` script in the root directly.
 
 ### Running the tests
 
-<TODO>
+Tests are included in the main tscim library, as well as in some of the demo applications. All of them will use the same command to run:
+```bash
+
+# Run all tests
+pnpm test
+
+# Run a single test
+pnpm test filter-dsl.test
+
+# Run all tests and watch
+pnpn test-watch
+```
+
+### Type checking and linting
+
+tscim and all demo applications include a typecheck command
+
+```bash
+# Run Typescript type checks
+pnpm check
+```
+
+tscim and some demo applications include linting via eslint, which can also be run with typechecking
+
+```bash
+# Run linter
+pnpm lint
+
+# Run linter in fix mode
+pnpm lint-fix
+
+# type check and lint
+pnpm lint-check
+```

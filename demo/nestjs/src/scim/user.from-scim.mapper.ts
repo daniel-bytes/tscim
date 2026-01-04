@@ -52,13 +52,21 @@ export function fromScimUser(user: ScimUser): User {
       firstName: userWithTypedProps.name?.givenName,
       lastName: userWithTypedProps.name?.familyName,
     },
-    phone: {
-      primary: userWithTypedProps.phoneNumbers?.find((phone) => phone.primary)
-        ?.value,
-      alternate: userWithTypedProps.phoneNumbers?.find(
+    phone: (() => {
+      const primaryPhone = userWithTypedProps.phoneNumbers?.find((phone) => phone.primary)?.value;
+      const alternatePhone = userWithTypedProps.phoneNumbers?.find(
         (phone) => !phone.primary,
-      )?.value,
-    },
+      )?.value;
+      
+      // Only create phone object if there's at least a primary phone number
+      if (primaryPhone) {
+        return {
+          primary: primaryPhone,
+          alternate: alternatePhone,
+        };
+      }
+      return undefined;
+    })(),
     address: fromScimAddress(userWithTypedProps.addresses?.[0]),
     attributes: {
       displayName: userWithTypedProps.displayName,

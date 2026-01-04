@@ -3,7 +3,14 @@ import { DatabaseSync } from 'node:sqlite';
 import Loki from 'lokijs';
 import { Module } from '@nestjs/common';
 import { ServeStaticModule } from '@nestjs/serve-static';
-import { ScimService, ScimClient, ScimHttpClient } from 'tscim';
+import {
+  Group,
+  InMemoryAdapter,
+  ScimService,
+  ScimClient,
+  ScimHttpClient,
+  User,
+} from 'tscim';
 import { AppController } from './app.controller';
 import { ScimController } from './scim.controller';
 import { UserRepository } from './domain/user.repository';
@@ -82,4 +89,22 @@ import { UserScimAdapter } from './scim/user.scim.adapter';
     },
   ],
 })
-export class AppModule {}
+export class AppModule {
+  forTest() {
+    return {
+      module: AppModule,
+      providers: [
+        {
+          provide: Tokens.TestScimService,
+          useFactory: (): ScimService => {
+            return new ScimService({
+              userAdapter: new InMemoryAdapter<User>('User'),
+              groupAdapter: new InMemoryAdapter<Group>('Group'),
+            });
+          },
+        },
+      ],
+      exports: [Tokens.TestScimService],
+    };
+  }
+}

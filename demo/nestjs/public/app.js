@@ -276,9 +276,9 @@ function app() {
           alternate: user.email?.alternate || '',
         },
         phone: {
-          mobile: user.phone?.mobile || '',
-          home: user.phone?.home || '',
-          office: user.phone?.office || '',
+          mobile: user.phone?.primary || '',
+          home: user.phone?.alternate || '',
+          office: '',
         },
         address: {
           street: user.address?.street || '',
@@ -312,9 +312,6 @@ function app() {
         email: {
           primary: this.userForm.email.primary,
         },
-        phone: {
-          mobile: this.userForm.phone.mobile,
-        },
       };
 
       if (this.userForm.managerId) {
@@ -325,12 +322,17 @@ function app() {
         userData.email.alternate = this.userForm.email.alternate;
       }
 
-      if (this.userForm.phone.home) {
-        userData.phone.home = this.userForm.phone.home;
-      }
-
-      if (this.userForm.phone.office) {
-        userData.phone.office = this.userForm.phone.office;
+      // Only include phone if mobile is provided
+      if (this.userForm.phone.mobile && this.userForm.phone.mobile.trim()) {
+        userData.phone = {
+          primary: this.userForm.phone.mobile,
+        };
+        // Use home as alternate if provided, otherwise use office
+        if (this.userForm.phone.home && this.userForm.phone.home.trim()) {
+          userData.phone.alternate = this.userForm.phone.home;
+        } else if (this.userForm.phone.office && this.userForm.phone.office.trim()) {
+          userData.phone.alternate = this.userForm.phone.office;
+        }
       }
 
       // Only include address if at least one field is filled

@@ -4,4 +4,5 @@ export const Tokens = {
   ScimHttpClient: Symbol('ScimHttpClient'),
   ScimService: Symbol('ScimService'),
   ScimClient: Symbol('ScimClient'),
+  TestScimService: Symbol('TestScimService'),
 };

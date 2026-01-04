@@ -16,7 +16,8 @@
     "baseUrl": "./",
     "paths": {
       "tscim": ["../../build/dts/index.d.ts"],
-      "tscim/*": ["../../build/dts/*"]
+      "tscim/*": ["../../build/dts/*"],
+      "@test/*": ["../../test/*"]
     },
     "incremental": true,
     "skipLibCheck": true,

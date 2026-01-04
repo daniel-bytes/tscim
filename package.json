@@ -1,18 +1,40 @@
 {
-  "name": "@template/basic",
-  "version": "0.0.0",
+  "name": "tscim",
+  "version": "0.0.1",
   "type": "module",
   "packageManager": "pnpm@10.14.0",
   "license": "MIT",
-  "description": "A TypeScript SCIM library",
+  "description": "A TypeScript implementation of the SCIM protocol",
+  "keywords": [
+    "scim",
+    "scim2",
+    "identity",
+    "user-management",
+    "typescript"
+  ],
   "repository": {
     "type": "git",
-    "url": "<PLACEHOLDER>"
+    "url": "https://github.com/daniel-bytes/tscim"
   },
   "publishConfig": {
-    "access": "public",
-    "directory": "dist"
+    "access": "public"
   },
+  "main": "./build/cjs/index.js",
+  "module": "./build/esm/index.js",
+  "types": "./build/dts/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./build/dts/index.d.ts",
+      "import": "./build/esm/index.js",
+      "require": "./build/cjs/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "build",
+    "LICENSE",
+    "README.md"
+  ],
   "scripts": {
     "codegen": "echo 'codegen script removed - was using @effect/build-utils'",
     "build": "pnpm build-esm && pnpm build-annotate && pnpm build-cjs",
